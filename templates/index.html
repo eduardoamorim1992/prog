@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#080c12" />
+  <meta name="color-scheme" content="dark" />
+  <title>Preventivas — Frota</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #080c12;
+      --bg1: #0d1320;
+      --surface: rgba(22, 30, 46, 0.72);
+      --surface2: rgba(30, 41, 59, 0.55);
+      --border: rgba(148, 163, 184, 0.12);
+      --border2: rgba(148, 163, 184, 0.22);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent2: #818cf8;
+      --ring: rgba(56, 189, 248, 0.45);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+      -webkit-text-size-adjust: 100%;
+      overflow-x: clip;
+    }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--text);
+      -webkit-tap-highlight-color: rgba(56, 189, 248, 0.15);
+      background: var(--bg0);
+      background-image:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(56, 189, 248, 0.18), transparent 50%),
+        radial-gradient(ellipse 80% 60% at 100% 50%, rgba(129, 140, 248, 0.12), transparent 45%),
+        radial-gradient(ellipse 60% 40% at 0% 80%, rgba(45, 212, 191, 0.08), transparent 40%),
+        linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 100%);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding:
+        max(clamp(1.25rem, 4vw, 2.5rem), env(safe-area-inset-top))
+        max(clamp(1rem, 3vw, 1.75rem), env(safe-area-inset-right))
+        max(3.5rem, env(safe-area-inset-bottom))
+        max(clamp(1rem, 3vw, 1.75rem), env(safe-area-inset-left));
+    }
+    header.hero {
+      margin-bottom: 1.75rem;
+    }
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.35rem;
+    }
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 1.85rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.5rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.92rem;
+      max-width: 52ch;
+      margin: 0;
+    }
+    .sub strong { color: #e2e8f0; font-weight: 600; }
+    .err {
+      background: rgba(127, 29, 29, 0.35);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+      padding: 0.85rem 1.1rem;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+      backdrop-filter: blur(8px);
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.15rem 1.25rem 1.35rem;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+    }
+    .filters-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0 0 1rem;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 158px), 1fr));
+      gap: 0.85rem 1rem;
+      align-items: end;
+    }
+    .field-search {
+      grid-column: 1 / -1;
+    }
+    @media (min-width: 900px) {
+      .filters { grid-template-columns: 1.4fr repeat(4, 1fr); }
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .field span.label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1rem;
+      height: 1rem;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    input[type="search"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 0.55rem 0.75rem 0.55rem 2.35rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="search"]::placeholder { color: #64748b; }
+    input[type="search"]:hover { border-color: rgba(148, 163, 184, 0.35); }
+    input[type="search"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+    select {
+      width: 100%;
+      appearance: none;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.65rem center;
+    }
+    select:hover { border-color: rgba(148, 163, 184, 0.35); }
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+    select option { background: #1e293b; color: #f1f5f9; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .sync-line {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .sync-line .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+      flex-shrink: 0;
+    }
+    .sync-line.sync-err .dot {
+      background: #f87171;
+      box-shadow: 0 0 8px rgba(248, 113, 113, 0.4);
+    }
+    .sync-line time {
+      font-variant-numeric: tabular-nums;
+      color: #94a3b8;
+    }
+    .count {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .count strong {
+      color: var(--text);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 0.25rem 0.65rem;
+      background: rgba(148, 163, 184, 0.08);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      max-height: min(70vh, 720px);
+      max-height: min(70dvh, 720px);
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.92);
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      vertical-align: middle;
+    }
+    tbody tr {
+      transition: background 0.12s ease;
+    }
+    tbody tr:hover td {
+      background: rgba(56, 189, 248, 0.06);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge-P {
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .badge-A {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(251, 191, 36, 0.22);
+    }
+    .badge-E {
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .empty {
+      color: var(--muted);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      font-size: 0.92rem;
+    }
+    .empty[hidden] { display: none !important; }
+
+    /* ——— Mobile: toque, tipografia e layout em cards ——— */
+    @media (max-width: 639px) {
+      .panel {
+        padding: 1rem 1rem 1.15rem;
+        border-radius: 14px;
+      }
+      input[type="search"],
+      select {
+        min-height: 44px;
+        font-size: 16px; /* evita zoom ao focar no iOS Safari */
+      }
+      input[type="search"] {
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+      }
+      select {
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+      }
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .pill {
+        text-align: center;
+        justify-content: center;
+        font-size: 0.7rem;
+      }
+      .table-scroll {
+        overflow-x: visible;
+        overflow-y: visible;
+        max-height: none;
+      }
+      table {
+        display: block;
+        font-size: 0.88rem;
+      }
+      thead {
+        position: static;
+      }
+      thead tr {
+        display: none;
+      }
+      tbody {
+        display: block;
+      }
+      tbody tr {
+        display: block;
+        margin-bottom: 0.85rem;
+        padding: 0.65rem 0.85rem;
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+      }
+      tbody tr:last-child {
+        margin-bottom: 0;
+      }
+      tbody td {
+        display: grid;
+        grid-template-columns: minmax(6.5rem, 40%) 1fr;
+        gap: 0.35rem 0.65rem;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      }
+      tbody td:last-child {
+        border-bottom: none;
+        padding-bottom: 0.15rem;
+      }
+      tbody td:first-child {
+        padding-top: 0.15rem;
+      }
+      tbody td::before {
+        content: attr(data-label);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        line-height: 1.3;
+      }
+      tbody tr:hover td {
+        background: transparent;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .pill {
+        display: none;
+      }
+    }
+
+    /* Botão gráfico + modal */
+    .toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem 0.75rem;
+    }
+    .btn-chart {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 42px;
+      padding: 0.5rem 1rem;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.15));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+    }
+    .btn-chart:hover {
+      border-color: rgba(56, 189, 248, 0.55);
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.12);
+    }
+    .btn-chart:active {
+      transform: scale(0.98);
+    }
+    .btn-chart svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      opacity: 0.9;
+    }
+    .chart-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+        max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+    }
+    .chart-modal[hidden] {
+      display: none !important;
+    }
+    .chart-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+    }
+    .chart-modal-panel {
+      position: relative;
+      width: min(920px, 100%);
+      max-height: min(92dvh, 92vh);
+      display: flex;
+      flex-direction: column;
+      background: rgba(15, 23, 42, 0.97);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+    .chart-modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1rem 1rem 0.35rem 1.15rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .chart-modal-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .chart-modal-close {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -0.25rem -0.25rem 0 0;
+      font-size: 1.5rem;
+      line-height: 1;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+    .chart-modal-close:hover {
+      color: var(--text);
+      background: rgba(148, 163, 184, 0.12);
+    }
+    .chart-modal-sub {
+      margin: 0;
+      padding: 0.5rem 1.15rem 0.85rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .chart-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 220px;
+      padding: 0.25rem 0.75rem 1rem;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chart-wrap canvas {
+      display: block;
+    }
+    .chart-empty {
+      padding: 2rem 1.25rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 639px) {
+      .btn-chart {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+      }
+      .toolbar-right {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .chart-modal-panel {
+        max-height: 95dvh;
+        border-radius: 14px;
+      }
+      .chart-modal-head h2 {
+        font-size: 1rem;
+        padding-right: 0.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Manutenção preventiva</p>
+      <h1>Ordens de serviço</h1>
+      <p class="sub">Dados de <strong>{{ excel_name }}</strong>. Status: P programada · A andamento · E encerrada.</p>
+    </header>
+
+    {% if error %}
+    <div class="err">{{ error }}</div>
+    {% endif %}
+
+    {% if not error %}
+    <div class="panel">
+      <p class="filters-title">Filtrar</p>
+      <div class="filters">
+        <div class="field field-search">
+          <span class="label">Busca</span>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input type="search" id="q" placeholder="Frota, OS, tipo, setor…" autocomplete="off" />
+          </div>
+        </div>
+        <div class="field">
+          <span class="label">Tipo equipamento</span>
+          <select id="f-tipo" aria-label="Tipo equipamento"></select>
+        </div>
+        <div class="field">
+          <span class="label">Setor</span>
+          <select id="f-setor" aria-label="Setor"></select>
+        </div>
+        <div class="field">
+          <span class="label">Tipo plano</span>
+          <select id="f-plano" aria-label="Tipo plano"></select>
+        </div>
+        <div class="field">
+          <span class="label">Status</span>
+          <select id="f-status" aria-label="Status"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div style="flex:1;min-width:min(100%,200px)">
+        <p class="count" id="count"></p>
+        <div class="sync-line" id="sync-line" title="A planilha é verificada em segundo plano; ao salvar, a lista atualiza sozinha.">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="sync-msg">Sincronização automática ativa</span>
+          <time id="sync-time" datetime=""></time>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button type="button" class="btn-chart" id="btn-open-chart" aria-haspopup="dialog" aria-controls="chart-modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M3 3v18h18" />
+            <path d="M7 16l4-4 4 4 5-7" />
+          </svg>
+          Aderência por setor
+        </button>
+        <span class="pill" id="pill-hint">Listas mostram só combinações possíveis</span>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo equipamento</th>
+              <th>Cód. frota</th>
+              <th>Ordem serviço</th>
+              <th>Data preventiva</th>
+              <th>Setor</th>
+              <th>Tipo plano</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <p class="empty" id="empty" hidden>Nenhum registro com os filtros atuais.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if not error %}
+  <div id="chart-modal" class="chart-modal" hidden aria-hidden="true">
+    <div class="chart-modal-backdrop" id="chart-modal-backdrop" tabindex="-1"></div>
+    <div class="chart-modal-panel" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title" id="chart-dialog">
+      <div class="chart-modal-head">
+        <h2 id="chart-modal-title">Aderência por setor</h2>
+        <button type="button" class="chart-modal-close" id="chart-modal-close" aria-label="Fechar">&times;</button>
+      </div>
+      <p class="chart-modal-sub" id="chart-modal-desc">
+        Na aderência entra só ordem com status <strong>Encerrada (E)</strong>. O gráfico mostra, por setor, quantas são encerradas e o % em relação ao total de ordens (todos os status) com os filtros atuais.
+      </p>
+      <div class="chart-wrap" id="chart-wrap">
+        <canvas id="chart-canvas" aria-label="Gráfico de aderência por setor"></canvas>
+        <p class="chart-empty" id="chart-empty" hidden>Nenhum registro com os filtros atuais para montar o gráfico.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    let rowsData = {{ rows | tojson }};
+    let dataRevision = {{ revision | tojson }};
+
+    const STATUS_ORDER = ["P", "A", "E"];
+
+    function uniqSort(arr) {
+      return [...new Set(arr.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "pt-BR"));
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement("div");
+      d.textContent = s == null ? "" : String(s);
+      return d.innerHTML;
+    }
+
+    /** Corresponde a linha usando filtros; `ignore` omite um filtro para montar opções disponíveis. */
+    function rowMatches(r, q, tipo, setor, plano, status, ignore) {
+      if (ignore !== "tipo" && tipo && r.tipo_equipamento !== tipo) return false;
+      if (ignore !== "setor" && setor && r.setor !== setor) return false;
+      if (ignore !== "plano" && plano && r.tipo_plano !== plano) return false;
+      if (ignore !== "status" && status && r.status !== status) return false;
+      if (q) {
+        const hay = [r.tipo_equipamento, r.cod_frota, r.ordem_servico, r.setor, r.tipo_plano, r.status_label]
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    }
+
+    function getFilterState() {
+      return {
+        q: (document.getElementById("q").value || "").trim().toLowerCase(),
+        tipo: document.getElementById("f-tipo").value,
+        setor: document.getElementById("f-setor").value,
+        plano: document.getElementById("f-plano").value,
+        status: document.getElementById("f-status").value,
+      };
+    }
+
+    function getFilteredRows() {
+      const { q, tipo, setor, plano, status } = getFilterState();
+      return rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, null));
+    }
+
+    /** Só ordens encerradas (E) entram como “aderência” no numerador; denominador = todas as OS do setor (filtro atual). */
+    function isOrdemEncerrada(r) {
+      return r.status === "E";
+    }
+
+    function buildSectorAdherence(rows) {
+      const map = new Map();
+      for (const r of rows) {
+        const raw = r.setor != null ? String(r.setor).trim() : "";
+        const key = raw ? raw : "(Sem setor)";
+        if (!map.has(key)) map.set(key, { total: 0, encerradas: 0 });
+        const o = map.get(key);
+        o.total += 1;
+        if (isOrdemEncerrada(r)) o.encerradas += 1;
+      }
+      const list = [...map.entries()].map(([setor, v]) => ({
+        setor,
+        total: v.total,
+        encerradas: v.encerradas,
+        pct: v.total ? Math.round((v.encerradas / v.total) * 1000) / 10 : 0,
+      }));
+      list.sort((a, b) => a.setor.localeCompare(b.setor, "pt-BR"));
+      return list;
+    }
+
+    let chartInstance = null;
+    let chartModalPrevFocus = null;
+
+    function destroyAdherenceChart() {
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+    }
+
+    function openChartModal() {
+      const modal = document.getElementById("chart-modal");
+      const canvas = document.getElementById("chart-canvas");
+      const emptyEl = document.getElementById("chart-empty");
+      const wrap = document.getElementById("chart-wrap");
+      chartModalPrevFocus = document.activeElement;
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+
+      const rows = getFilteredRows();
+      const stats = buildSectorAdherence(rows);
+
+      destroyAdherenceChart();
+
+      if (stats.length === 0) {
+        canvas.hidden = true;
+        emptyEl.hidden = false;
+        wrap.style.height = "";
+        document.getElementById("chart-modal-close").focus();
+        document.body.style.overflow = "hidden";
+        return;
+      }
+
+      canvas.hidden = false;
+      emptyEl.hidden = true;
+
+      const labels = stats.map(s => s.setor);
+      const dataPct = stats.map(s => s.pct);
+      const totals = stats.map(s => s.total);
+      const encs = stats.map(s => s.encerradas);
+
+      const barHeight = 34;
+      wrap.style.height = Math.max(220, labels.length * barHeight + 72) + "px";
+
+      Chart.defaults.color = "#94a3b8";
+      Chart.defaults.borderColor = "rgba(148, 163, 184, 0.15)";
+
+      const ctx = canvas.getContext("2d");
+      chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Aderência",
+              data: dataPct,
+              backgroundColor: "rgba(56, 189, 248, 0.42)",
+              borderColor: "rgba(56, 189, 248, 0.9)",
+              borderWidth: 1,
+              borderRadius: 6,
+              maxBarThickness: 24,
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 400 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title(items) {
+                  return items[0].label;
+                },
+                label(ctx) {
+                  const i = ctx.dataIndex;
+                  return ` ${dataPct[i]}% — ${encs[i]} encerrada(s) de ${totals[i]} ordem(ns) no setor`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 100,
+              grid: { color: "rgba(148, 163, 184, 0.12)" },
+              ticks: {
+                color: "#94a3b8",
+                callback(v) {
+                  return v + "%";
+                },
+              },
+            },
+            y: {
+              grid: { display: false },
+              ticks: {
+                color: "#cbd5e1",
+                font: { size: window.matchMedia("(max-width: 639px)").matches ? 10 : 11 },
+                autoSkip: false,
+                callback(val) {
+                  const t = this.getLabelForValue(val);
+                  const max = window.matchMedia("(max-width: 639px)").matches ? 22 : 40;
+                  if (t.length <= max) return t;
+                  return t.slice(0, max - 1) + "…";
+                },
+              },
+            },
+          },
+        },
+      });
+
+      document.body.style.overflow = "hidden";
+      document.getElementById("chart-modal-close").focus();
+
+      requestAnimationFrame(() => {
+        if (chartInstance) chartInstance.resize();
+      });
+    }
+
+    function closeChartModal() {
+      const modal = document.getElementById("chart-modal");
+      modal.hidden = true;
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      destroyAdherenceChart();
+      const wrap = document.getElementById("chart-wrap");
+      if (wrap) wrap.style.height = "";
+      const canvas = document.getElementById("chart-canvas");
+      const emptyEl = document.getElementById("chart-empty");
+      if (canvas) {
+        canvas.hidden = false;
+      }
+      if (emptyEl) emptyEl.hidden = true;
+      if (chartModalPrevFocus && chartModalPrevFocus.focus) {
+        chartModalPrevFocus.focus();
+      }
+      chartModalPrevFocus = null;
+    }
+
+    function rebuildSelect(id, options, value, formatLabel) {
+      const sel = document.getElementById(id);
+      const fmt = formatLabel || (v => v);
+      sel.innerHTML = "";
+      const all = document.createElement("option");
+      all.value = "";
+      all.textContent = "Todos";
+      sel.appendChild(all);
+      options.forEach(v => {
+        const o = document.createElement("option");
+        o.value = v;
+        o.textContent = fmt(v);
+        sel.appendChild(o);
+      });
+      if (value && options.includes(value)) sel.value = value;
+      else sel.value = "";
+    }
+
+    function syncFilterOptions() {
+      const q = (document.getElementById("q").value || "").trim().toLowerCase();
+      let tipo = document.getElementById("f-tipo").value;
+      let setor = document.getElementById("f-setor").value;
+      let plano = document.getElementById("f-plano").value;
+      let status = document.getElementById("f-status").value;
+
+      for (let round = 0; round < 6; round++) {
+        const rowsTipo = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "tipo"));
+        const optsTipo = uniqSort(rowsTipo.map(r => r.tipo_equipamento));
+        const rowsSetor = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "setor"));
+        const optsSetor = uniqSort(rowsSetor.map(r => r.setor));
+        const rowsPlano = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "plano"));
+        const optsPlano = uniqSort(rowsPlano.map(r => r.tipo_plano));
+        const rowsStat = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "status"));
+        const rawStat = uniqSort(rowsStat.map(r => r.status).filter(Boolean));
+        const optsStatus = [
+          ...STATUS_ORDER.filter(s => rawStat.includes(s)),
+          ...rawStat.filter(s => !STATUS_ORDER.includes(s)),
+        ];
+
+        let changed = false;
+        if (tipo && !optsTipo.includes(tipo)) { tipo = ""; changed = true; }
+        if (setor && !optsSetor.includes(setor)) { setor = ""; changed = true; }
+        if (plano && !optsPlano.includes(plano)) { plano = ""; changed = true; }
+        if (status && !optsStatus.includes(status)) { status = ""; changed = true; }
+
+        rebuildSelect("f-tipo", optsTipo, tipo);
+        rebuildSelect("f-setor", optsSetor, setor);
+        rebuildSelect("f-plano", optsPlano, plano);
+        rebuildSelect("f-status", optsStatus, status, v => {
+          const map = { P: "Programada", A: "Andamento", E: "Encerrada" };
+          return map[v] != null ? map[v] : String(v);
+        });
+
+        tipo = document.getElementById("f-tipo").value;
+        setor = document.getElementById("f-setor").value;
+        plano = document.getElementById("f-plano").value;
+        status = document.getElementById("f-status").value;
+
+        if (!changed) break;
+      }
+    }
+
+    function renderTable() {
+      const q = (document.getElementById("q").value || "").trim().toLowerCase();
+      const tipo = document.getElementById("f-tipo").value;
+      const setor = document.getElementById("f-setor").value;
+      const plano = document.getElementById("f-plano").value;
+      const status = document.getElementById("f-status").value;
+      const filtered = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, null));
+
+      const tb = document.getElementById("tbody");
+      tb.innerHTML = "";
+      filtered.forEach(r => {
+        const tr = document.createElement("tr");
+        const st = r.status || "";
+        const badgeClass = st && "PAE".includes(st) ? "badge-" + st : "";
+        tr.innerHTML = `
+          <td data-label="Tipo">${escapeHtml(r.tipo_equipamento)}</td>
+          <td data-label="Frota" class="mono">${escapeHtml(r.cod_frota)}</td>
+          <td data-label="Ordem OS" class="mono">${escapeHtml(r.ordem_servico)}</td>
+          <td data-label="Data" class="mono">${escapeHtml(r.data_preventiva)}</td>
+          <td data-label="Setor">${escapeHtml(r.setor)}</td>
+          <td data-label="Plano">${escapeHtml(r.tipo_plano)}</td>
+          <td data-label="Status"><span class="badge ${badgeClass}">${escapeHtml(r.status_label)}</span></td>
+        `;
+        tb.appendChild(tr);
+      });
+      document.getElementById("count").innerHTML =
+        "Exibindo <strong>" + filtered.length + "</strong> de <strong>" + rowsData.length + "</strong> registros";
+      document.getElementById("empty").hidden = filtered.length > 0;
+    }
+
+    function refresh() {
+      syncFilterOptions();
+      renderTable();
+    }
+
+    ["q", "f-tipo", "f-setor", "f-plano", "f-status"].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener("input", refresh);
+      el.addEventListener("change", refresh);
+    });
+
+    document.getElementById("btn-open-chart").addEventListener("click", () => openChartModal());
+    document.getElementById("chart-modal-close").addEventListener("click", () => closeChartModal());
+    document.getElementById("chart-modal-backdrop").addEventListener("click", () => closeChartModal());
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        const modal = document.getElementById("chart-modal");
+        if (modal && !modal.hidden) {
+          e.preventDefault();
+          closeChartModal();
+        }
+      }
+    });
+
+    /** Fluxo de dados: polling do servidor (planilha relida quando o arquivo muda). */
+    function setSyncState(ok, msg) {
+      const line = document.getElementById("sync-line");
+      const msgEl = document.getElementById("sync-msg");
+      const timeEl = document.getElementById("sync-time");
+      if (!line || !msgEl || !timeEl) return;
+      msgEl.textContent = msg;
+      const now = new Date();
+      timeEl.textContent = " · " + now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      timeEl.setAttribute("datetime", now.toISOString());
+      line.classList.toggle("sync-err", !ok);
+    }
+
+    async function syncDataFromServer() {
+      try {
+        const r = await fetch("/api/dados", { cache: "no-store", headers: { Accept: "application/json" } });
+        const j = await r.json();
+        if (j.revision === dataRevision) {
+          setSyncState(true, "Em dia com a planilha");
+          return;
+        }
+        if (!j.ok) {
+          setSyncState(false, j.error || "Erro ao ler a planilha");
+          return;
+        }
+        dataRevision = j.revision;
+        rowsData = j.rows;
+        setSyncState(true, "Dados atualizados do Excel");
+        refresh();
+      } catch (e) {
+        setSyncState(false, "Sem conexão com o servidor");
+      }
+    }
+
+    refresh();
+    setSyncState(true, "Monitorando alterações na planilha…");
+
+    const POLL_MS = 20000;
+    const POLL_HIDDEN_MS = 45000;
+    function pollDelay() {
+      return document.hidden ? POLL_HIDDEN_MS : POLL_MS;
+    }
+    let pollTimer = null;
+    function schedulePoll() {
+      if (pollTimer) clearTimeout(pollTimer);
+      pollTimer = setTimeout(function tick() {
+        syncDataFromServer();
+        pollTimer = setTimeout(tick, pollDelay());
+      }, pollDelay());
+    }
+    schedulePoll();
+    document.addEventListener("visibilitychange", () => {
+      if (pollTimer) clearTimeout(pollTimer);
+      schedulePoll();
+      if (!document.hidden) syncDataFromServer();
+    });
+  </script>
+  {% endif %}
+</body>
+</html>
