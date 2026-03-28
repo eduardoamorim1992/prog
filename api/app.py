@@ -42,30 +42,28 @@ def _cell_str(val) -> str:
     return str(val).strip()
 
 
+# 🔥 FUNÇÃO COM DEBUG (evita erro 500)
 def load_rows():
-    if not EXCEL_PATH.is_file():
-        return [], f"Arquivo não encontrado: {EXCEL_PATH}"
-
     try:
+        if not EXCEL_PATH.exists():
+            return [], f"Arquivo NÃO encontrado: {EXCEL_PATH}"
+
         df = pd.read_excel(EXCEL_PATH, engine="openpyxl", header=None)
-    except Exception as e:
-        return [], str(e)
 
-    rows = []
+        rows = []
 
-    for i in range(2, len(df)):
-        r = df.iloc[i]
+        for i in range(2, len(df)):
+            r = df.iloc[i]
 
-        data_prev = r.iloc[COL_E]
-        if hasattr(data_prev, "strftime"):
-            data_str = data_prev.strftime("%Y-%m-%d")
-        else:
-            data_str = str(data_prev)[:10] if not pd.isna(data_prev) else ""
+            data_prev = r.iloc[COL_E]
+            if hasattr(data_prev, "strftime"):
+                data_str = data_prev.strftime("%Y-%m-%d")
+            else:
+                data_str = str(data_prev)[:10] if not pd.isna(data_prev) else ""
 
-        st = _normalize_status(r.iloc[COL_J])
+            st = _normalize_status(r.iloc[COL_J])
 
-        rows.append(
-            {
+            rows.append({
                 "tipo_equipamento": _cell_str(r.iloc[COL_A]),
                 "cod_frota": _cell_str(r.iloc[COL_B]),
                 "ordem_servico": _cell_str(r.iloc[COL_C]),
@@ -74,17 +72,20 @@ def load_rows():
                 "tipo_plano": _cell_str(r.iloc[COL_I]),
                 "status": st,
                 "status_label": STATUS_LABEL.get(st, st),
-            }
-        )
+            })
 
-    return rows, None
+        return rows, None
+
+    except Exception as e:
+        return [], f"ERRO: {str(e)}"
 
 
-# 🔥 IMPORTANTE: apontando pro templates correto
+# 🔥 CONFIGURAÇÃO FLASK (templates fora da pasta api)
 app = Flask(__name__, template_folder="../templates")
 app.config["JSON_AS_ASCII"] = False
 
 
+# 🔥 ROTA PRINCIPAL
 @app.route("/")
 def index():
     rows, err = load_rows()
@@ -92,22 +93,21 @@ def index():
         "index.html",
         rows=rows,
         error=err,
-        excel_name=EXCEL_PATH.name,
+        excel_name=str(EXCEL_PATH),
     )
 
 
+# 🔥 API
 @app.route("/api/dados")
 def api_dados():
     rows, err = load_rows()
-    return jsonify(
-        {
-            "ok": err is None,
-            "error": err,
-            "rows": rows if err is None else [],
-        }
-    )
+    return jsonify({
+        "ok": err is None,
+        "error": err,
+        "rows": rows if err is None else []
+    })
 
 
-# ⚠️ não é usado no Vercel, mas ok deixar
+# ⚠️ não usado no Vercel (ok deixar)
 if __name__ == "__main__":
     app.run(debug=True)
