@@ -1,8 +1,10 @@
 """
 App web: lê a planilha Excel e exibe ordens de serviço.
 
-Usa o primeiro arquivo existente: prog.xlsm ou prog.xlsx (mesma pasta que app.py),
-ou o caminho em PROG_EXCEL_PATH.
+Fontes da planilha (por ordem):
+- PROG_EXCEL_URL — baixa de um link HTTP(S) público (ideal no Vercel)
+- PROG_EXCEL_PATH — caminho absoluto local
+- prog.xlsm / prog.xlsx na pasta do projeto
 
 Colunas (Excel): A unidade, C nº boletim, D frota, E status, F data,
 H tipo equipamento, K plano, L setor.
@@ -12,6 +14,9 @@ from __future__ import annotations
 
 import numbers
 import os
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import pandas as pd
@@ -19,10 +24,48 @@ from flask import Flask, jsonify, render_template
 
 BASE_DIR = Path(__file__).resolve().parent
 _override = (os.environ.get("PROG_EXCEL_PATH") or "").strip()
+_excel_url = (os.environ.get("PROG_EXCEL_URL") or "").strip()
+
+# Cache em /tmp no Vercel (serverless)
+_URL_TMP = Path("/tmp/prog_frota_planilha.xlsx")
+_url_last_fetch = 0.0
+
+
+def _ensure_url_excel(url: str) -> tuple[Path | None, str | None]:
+    """Garante ficheiro local em /tmp baixado da URL. Retorna (path, erro)."""
+    global _url_last_fetch
+
+    refresh = max(15, int(os.environ.get("PROG_EXCEL_REFRESH_SECS", "90")))
+    now = time.time()
+
+    if _URL_TMP.is_file() and (now - _url_last_fetch) < refresh:
+        return _URL_TMP, None
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; prog-frota/1.0)"},
+        )
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            data = resp.read()
+        if not data:
+            if _URL_TMP.is_file():
+                return _URL_TMP, None
+            return None, "A URL da planilha retornou conteúdo vazio."
+        _URL_TMP.write_bytes(data)
+        _url_last_fetch = now
+    except (urllib.error.URLError, OSError, TimeoutError, ValueError) as e:
+        if _URL_TMP.is_file():
+            return _URL_TMP, None
+        return None, f"Erro ao baixar a planilha: {e}"
+
+    return _URL_TMP, None
 
 
 def resolve_excel_path() -> Path:
-    """Caminho da planilha: variável de ambiente, ou prog.xlsm, ou prog.xlsx na pasta do projeto."""
+    """Caminho esperado (para mensagens); pode não existir se nada configurado."""
+    if _excel_url:
+        return _URL_TMP
     if _override:
         return Path(_override).expanduser().resolve()
     for name in ("prog.xlsm", "prog.xlsx"):
@@ -30,6 +73,21 @@ def resolve_excel_path() -> Path:
         if p.is_file():
             return p
     return (BASE_DIR / "prog.xlsx").resolve()
+
+
+def _resolve_readable_excel() -> tuple[Path | None, str | None]:
+    """Path de um ficheiro que existe e pode ser lido, ou (None, erro)."""
+    if _excel_url:
+        return _ensure_url_excel(_excel_url)
+    if _override:
+        p = Path(_override).expanduser().resolve()
+        return p, None
+    for name in ("prog.xlsm", "prog.xlsx"):
+        p = (BASE_DIR / name).resolve()
+        if p.is_file():
+            return p, None
+    return (BASE_DIR / "prog.xlsx").resolve(), None
+
 
 # Índices 0-based (coluna A = 0)
 COL_A = 0   # unidade
@@ -95,7 +153,6 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
     if df.shape[1] <= COL_MAX:
         return [], "Planilha sem colunas suficientes (necessário até a coluna L)."
 
-    # Linha 1 do Excel = título das colunas (ignorada). Linha 2 = primeira linha de dados (pandas índice 1).
     start = 1
     if df.shape[0] <= start:
         return [], "Nenhuma linha de dados."
@@ -124,17 +181,27 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
     return rows, None
 
 
-_cache: dict | None = None  # path (str), mtime, rows, err
+_cache: dict | None = None
 
 
 def get_rows() -> tuple[list[dict], str | None, str]:
     global _cache
-    path = resolve_excel_path()
-    if not path.is_file():
+    path, prep_err = _resolve_readable_excel()
+    if prep_err:
         _cache = None
+        return [], prep_err, "missing"
+
+    if path is None or not path.is_file():
+        _cache = None
+        extra = ""
+        if os.environ.get("VERCEL"):
+            extra = (
+                " No Vercel, crie a variável PROG_EXCEL_URL com um link direto ao ficheiro .xlsx "
+                "(ex.: ficheiro público no OneDrive/Google Drive ou raw no GitHub)."
+            )
         return (
             [],
-            f"Nenhuma planilha encontrada. Coloque prog.xlsm ou prog.xlsx em: {BASE_DIR}",
+            f"Nenhuma planilha encontrada em {BASE_DIR}.{extra}",
             "missing",
         )
 
@@ -145,17 +212,33 @@ def get_rows() -> tuple[list[dict], str | None, str]:
         return [], "Não foi possível acessar a planilha.", "error"
 
     pkey = str(path.resolve())
-    revision = f"{mtime:.7f}:{path.name}"
+    if _excel_url:
+        revision = f"url:{mtime:.4f}:{_url_last_fetch:.0f}"
+    else:
+        revision = f"{mtime:.7f}:{path.name}"
 
     if (
         _cache is not None
         and _cache.get("path") == pkey
         and _cache.get("mtime") == mtime
+        and not _excel_url
+    ):
+        return _cache["rows"], _cache["err"], revision
+
+    if (
+        _cache is not None
+        and _excel_url
+        and _cache.get("path") == pkey
+        and _cache.get("mtime") == mtime
+        and _cache.get("url_fetch") == _url_last_fetch
     ):
         return _cache["rows"], _cache["err"], revision
 
     rows, err = load_rows(path)
-    _cache = {"path": pkey, "mtime": mtime, "rows": rows, "err": err}
+    entry = {"path": pkey, "mtime": mtime, "rows": rows, "err": err}
+    if _excel_url:
+        entry["url_fetch"] = _url_last_fetch
+    _cache = entry
     return rows, err, revision
 
 
@@ -175,7 +258,10 @@ app.config["JSON_AS_ASCII"] = False
 def index():
     path = resolve_excel_path()
     rows, err, revision = get_rows()
-    excel_name = path.name if path.is_file() else "prog.xlsm ou prog.xlsx"
+    if _excel_url:
+        excel_name = "Planilha (URL)"
+    else:
+        excel_name = path.name if path.is_file() else "prog.xlsm ou prog.xlsx"
     return render_template(
         "index.html",
         rows=rows,

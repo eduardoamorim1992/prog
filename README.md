@@ -19,17 +19,23 @@ O Vercel detecta o Flask em `app.py` ([documentação](https://vercel.com/docs/f
 2. No [Vercel](https://vercel.com/new): **Add New Project** → importe o repo.
 3. Framework: Flask (automático). **Deploy**.
 
-### Limitação importante (planilha)
+### Planilha no Vercel (obrigatório: URL)
 
-No servidor serverless **não há** o arquivo Excel da sua máquina. Sem o ficheiro, a app mostra “arquivo não encontrado”. Opções:
+No Vercel não existe o teu `prog.xlsx` local. Define no projeto Vercel **Settings → Environment Variables**:
 
-- **Teste rápido:** inclua um `prog.xlsx` pequeno no repositório (remova `*.xlsx` do `.gitignore` só se puder versionar dados).
-- **Produção:** hospedar o ficheiro acessível por URL e estender o código para ler dessa URL, ou usar **Render / Railway / Fly.io** com disco persistente.
+| Variável | Descrição |
+|----------|-----------|
+| **`PROG_EXCEL_URL`** | Link **direto** ao ficheiro `.xlsx` (o browser tem de conseguir descarregar sem login). Ex.: **GitHub** (*Raw* do ficheiro), **Google Drive** (link de download direto), **OneDrive** (partilha com link de download). |
+| `PROG_EXCEL_REFRESH_SECS` | (Opcional) Segundos entre novos downloads. Predefinido: `90`. |
 
-Variável opcional em produção: `PROG_EXCEL_PATH` (caminho absoluto **dentro** do bundle deployado, ex.: `/var/task/prog.xlsx`, se copiar o ficheiro no build).
+Depois de guardar as variáveis, faz **Redeploy** do projeto.
+
+Outras opções: commitar um `prog.xlsx` no repo (tirar `*.xlsx` do `.gitignore` se for aceitável) ou usar `PROG_EXCEL_PATH` só quando o ficheiro existir no bundle.
 
 ## Variáveis de ambiente
 
 | Variável | Uso |
 |----------|-----|
-| `PROG_EXCEL_PATH` | Caminho absoluto da planilha (local ou deploy). |
+| `PROG_EXCEL_URL` | URL HTTP(S) pública do `.xlsx` (recomendado no Vercel). |
+| `PROG_EXCEL_PATH` | Caminho absoluto local (PC ou ficheiro copiado no deploy). |
+| `PROG_EXCEL_REFRESH_SECS` | Intervalo de atualização ao usar URL. |
