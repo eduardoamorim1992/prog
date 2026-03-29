@@ -73,13 +73,17 @@
       background-clip: text;
       color: transparent;
     }
-    .sub {
-      color: var(--muted);
-      font-size: 0.92rem;
-      max-width: 52ch;
+    .hero-hint {
       margin: 0;
+      max-width: 42rem;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: var(--muted);
     }
-    .sub strong { color: #e2e8f0; font-weight: 600; }
+    .hero-hint strong {
+      color: #cbd5e1;
+      font-weight: 600;
+    }
     .err {
       background: rgba(127, 29, 29, 0.35);
       border: 1px solid rgba(248, 113, 113, 0.35);
@@ -116,7 +120,7 @@
       grid-column: 1 / -1;
     }
     @media (min-width: 900px) {
-      .filters { grid-template-columns: 1.4fr repeat(4, 1fr); }
+      .filters { grid-template-columns: 1.4fr repeat(5, 1fr); }
     }
     .field {
       display: flex;
@@ -237,12 +241,14 @@
       border: 1px solid var(--border);
     }
     .table-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+      background: linear-gradient(165deg, rgba(22, 30, 46, 0.85) 0%, rgba(15, 23, 42, 0.92) 100%);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 20px;
       overflow: hidden;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+      box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(56, 189, 248, 0.06) inset;
     }
     .table-scroll {
       overflow-x: auto;
@@ -252,41 +258,65 @@
       max-height: min(70dvh, 720px);
       overflow-y: auto;
     }
-    table {
+    table.data-table {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 0.84rem;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.875rem;
     }
-    thead {
+    .data-table thead {
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 2;
     }
-    th {
+    .data-table th {
       text-align: left;
-      padding: 0.75rem 1rem;
-      background: rgba(15, 23, 42, 0.92);
-      color: #94a3b8;
-      font-weight: 600;
-      font-size: 0.68rem;
+      padding: 0.9rem 1.15rem;
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+      color: #a8b8d8;
+      font-weight: 700;
+      font-size: 0.65rem;
       text-transform: uppercase;
-      letter-spacing: 0.07em;
+      letter-spacing: 0.1em;
       white-space: nowrap;
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.14);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
     }
-    td {
-      padding: 0.65rem 1rem;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    .data-table th:first-child {
+      border-radius: 0;
+      padding-left: 1.25rem;
+    }
+    .data-table th:last-child {
+      padding-right: 1.25rem;
+    }
+    .data-table td {
+      padding: 0.8rem 1.15rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.06);
       vertical-align: middle;
+      color: #e2e8f0;
     }
-    tbody tr {
-      transition: background 0.12s ease;
+    .data-table td:first-child {
+      padding-left: 1.25rem;
     }
-    tbody tr:hover td {
-      background: rgba(56, 189, 248, 0.06);
+    .data-table td:last-child {
+      padding-right: 1.25rem;
     }
-    tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr {
+      transition: background 0.14s ease, box-shadow 0.14s ease;
+    }
+    .data-table tbody tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.45);
+    }
+    .data-table tbody tr:hover td {
+      background: rgba(56, 189, 248, 0.09);
+    }
+    .data-table tbody tr:nth-child(even):hover td {
+      background: rgba(56, 189, 248, 0.11);
+    }
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
     .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
     .badge {
       display: inline-flex;
@@ -308,9 +338,10 @@
       border: 1px solid rgba(251, 191, 36, 0.22);
     }
     .badge-E {
-      background: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.15);
     }
     .empty {
       color: var(--muted);
@@ -353,7 +384,7 @@
         overflow-y: visible;
         max-height: none;
       }
-      table {
+      table.data-table {
         display: block;
         font-size: 0.88rem;
       }
@@ -366,18 +397,19 @@
       tbody {
         display: block;
       }
-      tbody tr {
+      .data-table tbody tr {
         display: block;
         margin-bottom: 0.85rem;
-        padding: 0.65rem 0.85rem;
-        background: rgba(15, 23, 42, 0.55);
-        border: 1px solid var(--border);
-        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(145deg, rgba(22, 30, 46, 0.82) 0%, rgba(15, 23, 42, 0.9) 100%);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
       }
-      tbody tr:last-child {
+      .data-table tbody tr:last-child {
         margin-bottom: 0;
       }
-      tbody td {
+      .data-table tbody td {
         display: grid;
         grid-template-columns: minmax(6.5rem, 40%) 1fr;
         gap: 0.35rem 0.65rem;
@@ -385,14 +417,14 @@
         padding: 0.5rem 0;
         border-bottom: 1px solid rgba(148, 163, 184, 0.1);
       }
-      tbody td:last-child {
+      .data-table tbody td:last-child {
         border-bottom: none;
         padding-bottom: 0.15rem;
       }
-      tbody td:first-child {
+      .data-table tbody td:first-child {
         padding-top: 0.15rem;
       }
-      tbody td::before {
+      .data-table tbody td::before {
         content: attr(data-label);
         font-size: 0.65rem;
         font-weight: 600;
@@ -401,7 +433,7 @@
         color: var(--muted);
         line-height: 1.3;
       }
-      tbody tr:hover td {
+      .data-table tbody tr:hover td {
         background: transparent;
       }
     }
@@ -448,6 +480,21 @@
       width: 1.1rem;
       height: 1.1rem;
       opacity: 0.9;
+    }
+    .chart-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    .btn-chart-rank {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(16, 185, 129, 0.12));
+      border-color: rgba(34, 197, 94, 0.4);
+    }
+    .btn-chart-rank:hover {
+      border-color: rgba(34, 197, 94, 0.6);
+      box-shadow: 0 4px 20px rgba(34, 197, 94, 0.12);
     }
     .chart-modal {
       position: fixed;
@@ -546,6 +593,11 @@
         min-height: 44px;
         font-size: 16px;
       }
+      .chart-buttons {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
       .toolbar-right {
         width: 100%;
         flex-direction: column;
@@ -567,7 +619,7 @@
     <header class="hero">
       <p class="eyebrow">Manutenção preventiva</p>
       <h1>Ordens de serviço</h1>
-      <p class="sub">Dados de <strong>{{ excel_name }}</strong>. Status: P programada · A andamento · E encerrada.</p>
+      <p class="hero-hint">Fluxo de dados ativo: ao <strong>salvar</strong> a planilha no disco, a página consulta o servidor a cada poucos segundos e atualiza tabela, filtros e gráficos — sem precisar dar F5.</p>
     </header>
 
     {% if error %}
@@ -585,8 +637,12 @@
               <circle cx="11" cy="11" r="7" />
               <path d="M21 21l-4.35-4.35" />
             </svg>
-            <input type="search" id="q" placeholder="Frota, OS, tipo, setor…" autocomplete="off" />
+            <input type="search" id="q" placeholder="Unidade, boletim, frota, tipo, setor…" autocomplete="off" />
           </div>
+        </div>
+        <div class="field">
+          <span class="label">Unidade</span>
+          <select id="f-unidade" aria-label="Unidade"></select>
         </div>
         <div class="field">
           <span class="label">Tipo equipamento</span>
@@ -617,28 +673,37 @@
         </div>
       </div>
       <div class="toolbar-right">
-        <button type="button" class="btn-chart" id="btn-open-chart" aria-haspopup="dialog" aria-controls="chart-modal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M3 3v18h18" />
-            <path d="M7 16l4-4 4 4 5-7" />
-          </svg>
-          Aderência por setor
-        </button>
+        <div class="chart-buttons">
+          <button type="button" class="btn-chart" id="btn-open-chart" aria-haspopup="dialog" aria-controls="chart-modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 3v18h18" />
+              <path d="M7 16l4-4 4 4 5-7" />
+            </svg>
+            Aderência por setor
+          </button>
+          <button type="button" class="btn-chart btn-chart-rank" id="btn-open-rank-unidade" aria-haspopup="dialog" aria-controls="chart-modal-unidade">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M16 6v12M12 10v8M8 14v4M4 18h16" />
+            </svg>
+            Rank de unidade
+          </button>
+        </div>
         <span class="pill" id="pill-hint">Listas mostram só combinações possíveis</span>
       </div>
     </div>
 
     <div class="table-card">
       <div class="table-scroll">
-        <table>
+        <table class="data-table">
           <thead>
             <tr>
+              <th>Unidade</th>
+              <th>Nº boletim</th>
+              <th>Frota</th>
+              <th>Data da ordem</th>
               <th>Tipo equipamento</th>
-              <th>Cód. frota</th>
-              <th>Ordem serviço</th>
-              <th>Data preventiva</th>
+              <th>Plano</th>
               <th>Setor</th>
-              <th>Tipo plano</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -668,6 +733,23 @@
     </div>
   </div>
 
+  <div id="chart-modal-unidade" class="chart-modal" hidden aria-hidden="true">
+    <div class="chart-modal-backdrop" id="chart-modal-unidade-backdrop" tabindex="-1"></div>
+    <div class="chart-modal-panel" role="dialog" aria-modal="true" aria-labelledby="chart-unidade-title">
+      <div class="chart-modal-head">
+        <h2 id="chart-unidade-title">Rank de unidade — aderência</h2>
+        <button type="button" class="chart-modal-close" id="chart-unidade-close" aria-label="Fechar">&times;</button>
+      </div>
+      <p class="chart-modal-sub">
+        Unidades ordenadas pela <strong>maior % de encerradas (E)</strong> (aderência). Mesmos filtros da tabela. Em caso de empate, ordem alfabética da unidade.
+      </p>
+      <div class="chart-wrap" id="chart-unidade-wrap">
+        <canvas id="chart-unidade-canvas" aria-label="Rank de aderência por unidade"></canvas>
+        <p class="chart-empty" id="chart-unidade-empty" hidden>Nenhum registro com os filtros atuais para montar o rank.</p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     let rowsData = {{ rows | tojson }};
@@ -685,14 +767,24 @@
       return d.innerHTML;
     }
 
+    /** Garante DD.MM.AAAA na tela se ainda vier YYYY-MM-DD (cache ou outra origem). */
+    function formatDataOrdemExibicao(s) {
+      if (s == null || s === "") return "";
+      const t = String(s).trim();
+      const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+      if (iso) return `${iso[3]}.${iso[2]}.${iso[1]}`;
+      return t;
+    }
+
     /** Corresponde a linha usando filtros; `ignore` omite um filtro para montar opções disponíveis. */
-    function rowMatches(r, q, tipo, setor, plano, status, ignore) {
+    function rowMatches(r, q, unidade, tipo, setor, plano, status, ignore) {
+      if (ignore !== "unidade" && unidade && r.unidade !== unidade) return false;
       if (ignore !== "tipo" && tipo && r.tipo_equipamento !== tipo) return false;
       if (ignore !== "setor" && setor && r.setor !== setor) return false;
       if (ignore !== "plano" && plano && r.tipo_plano !== plano) return false;
       if (ignore !== "status" && status && r.status !== status) return false;
       if (q) {
-        const hay = [r.tipo_equipamento, r.cod_frota, r.ordem_servico, r.setor, r.tipo_plano, r.status_label]
+        const hay = [r.unidade, r.numero_boletim, r.cod_frota, r.tipo_equipamento, r.setor, r.tipo_plano, r.status_label]
           .join(" ")
           .toLowerCase();
         if (!hay.includes(q)) return false;
@@ -703,6 +795,7 @@
     function getFilterState() {
       return {
         q: (document.getElementById("q").value || "").trim().toLowerCase(),
+        unidade: document.getElementById("f-unidade").value,
         tipo: document.getElementById("f-tipo").value,
         setor: document.getElementById("f-setor").value,
         plano: document.getElementById("f-plano").value,
@@ -711,8 +804,8 @@
     }
 
     function getFilteredRows() {
-      const { q, tipo, setor, plano, status } = getFilterState();
-      return rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, null));
+      const { q, unidade, tipo, setor, plano, status } = getFilterState();
+      return rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, null));
     }
 
     /** Só ordens encerradas (E) entram como “aderência” no numerador; denominador = todas as OS do setor (filtro atual). */
@@ -740,8 +833,31 @@
       return list;
     }
 
+    /** Rank: maior aderência (% encerradas) primeiro; empate por nome da unidade. */
+    function buildUnidadeAdherenceRank(rows) {
+      const map = new Map();
+      for (const r of rows) {
+        const raw = r.unidade != null ? String(r.unidade).trim() : "";
+        const key = raw ? raw : "(Sem unidade)";
+        if (!map.has(key)) map.set(key, { total: 0, encerradas: 0 });
+        const o = map.get(key);
+        o.total += 1;
+        if (isOrdemEncerrada(r)) o.encerradas += 1;
+      }
+      const list = [...map.entries()].map(([unidade, v]) => ({
+        unidade,
+        total: v.total,
+        encerradas: v.encerradas,
+        pct: v.total ? Math.round((v.encerradas / v.total) * 1000) / 10 : 0,
+      }));
+      list.sort((a, b) => b.pct - a.pct || a.unidade.localeCompare(b.unidade, "pt-BR"));
+      return list;
+    }
+
     let chartInstance = null;
     let chartModalPrevFocus = null;
+    let chartInstanceUnidade = null;
+    let chartModalUnidadePrevFocus = null;
 
     function destroyAdherenceChart() {
       if (chartInstance) {
@@ -751,6 +867,7 @@
     }
 
     function openChartModal() {
+      closeUnidadeRankModal({ silent: true });
       const modal = document.getElementById("chart-modal");
       const canvas = document.getElementById("chart-canvas");
       const emptyEl = document.getElementById("chart-empty");
@@ -861,7 +978,8 @@
       });
     }
 
-    function closeChartModal() {
+    function closeChartModal(opts) {
+      const silent = opts && opts.silent === true;
       const modal = document.getElementById("chart-modal");
       modal.hidden = true;
       modal.setAttribute("aria-hidden", "true");
@@ -875,10 +993,150 @@
         canvas.hidden = false;
       }
       if (emptyEl) emptyEl.hidden = true;
-      if (chartModalPrevFocus && chartModalPrevFocus.focus) {
+      if (!silent && chartModalPrevFocus && chartModalPrevFocus.focus) {
         chartModalPrevFocus.focus();
       }
       chartModalPrevFocus = null;
+    }
+
+    function destroyUnidadeChart() {
+      if (chartInstanceUnidade) {
+        chartInstanceUnidade.destroy();
+        chartInstanceUnidade = null;
+      }
+    }
+
+    function openUnidadeRankModal() {
+      closeChartModal({ silent: true });
+      const modal = document.getElementById("chart-modal-unidade");
+      const canvas = document.getElementById("chart-unidade-canvas");
+      const emptyEl = document.getElementById("chart-unidade-empty");
+      const wrap = document.getElementById("chart-unidade-wrap");
+      chartModalUnidadePrevFocus = document.activeElement;
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+
+      const rows = getFilteredRows();
+      const stats = buildUnidadeAdherenceRank(rows);
+
+      destroyUnidadeChart();
+
+      if (stats.length === 0) {
+        canvas.hidden = true;
+        emptyEl.hidden = false;
+        wrap.style.height = "";
+        document.getElementById("chart-unidade-close").focus();
+        document.body.style.overflow = "hidden";
+        return;
+      }
+
+      canvas.hidden = false;
+      emptyEl.hidden = true;
+
+      const labels = stats.map((s, i) => `#${i + 1} ${s.unidade}`);
+      const dataPct = stats.map(s => s.pct);
+      const totals = stats.map(s => s.total);
+      const encs = stats.map(s => s.encerradas);
+
+      const barHeight = 36;
+      wrap.style.height = Math.max(240, labels.length * barHeight + 80) + "px";
+
+      Chart.defaults.color = "#94a3b8";
+      Chart.defaults.borderColor = "rgba(148, 163, 184, 0.15)";
+
+      const ctx = canvas.getContext("2d");
+      chartInstanceUnidade = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Aderência",
+              data: dataPct,
+              backgroundColor: "rgba(34, 197, 94, 0.45)",
+              borderColor: "rgba(52, 211, 153, 0.95)",
+              borderWidth: 1,
+              borderRadius: 6,
+              maxBarThickness: 26,
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 400 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title(items) {
+                  return stats[items[0].dataIndex].unidade;
+                },
+                label(ctx) {
+                  const i = ctx.dataIndex;
+                  return ` ${dataPct[i]}% — ${encs[i]} encerrada(s) de ${totals[i]} ordem(ns)`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 100,
+              grid: { color: "rgba(148, 163, 184, 0.12)" },
+              ticks: {
+                color: "#94a3b8",
+                callback(v) {
+                  return v + "%";
+                },
+              },
+            },
+            y: {
+              grid: { display: false },
+              ticks: {
+                color: "#cbd5e1",
+                font: { size: window.matchMedia("(max-width: 639px)").matches ? 9 : 10 },
+                autoSkip: false,
+                callback(val) {
+                  const t = this.getLabelForValue(val);
+                  const max = window.matchMedia("(max-width: 639px)").matches ? 26 : 42;
+                  if (t.length <= max) return t;
+                  return t.slice(0, max - 1) + "…";
+                },
+              },
+            },
+          },
+        },
+      });
+
+      document.body.style.overflow = "hidden";
+      document.getElementById("chart-unidade-close").focus();
+
+      requestAnimationFrame(() => {
+        if (chartInstanceUnidade) chartInstanceUnidade.resize();
+      });
+    }
+
+    function closeUnidadeRankModal(opts) {
+      const silent = opts && opts.silent === true;
+      const modal = document.getElementById("chart-modal-unidade");
+      if (modal) {
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+      }
+      document.body.style.overflow = "";
+      destroyUnidadeChart();
+      const wrap = document.getElementById("chart-unidade-wrap");
+      if (wrap) wrap.style.height = "";
+      const canvas = document.getElementById("chart-unidade-canvas");
+      const emptyEl = document.getElementById("chart-unidade-empty");
+      if (canvas) canvas.hidden = false;
+      if (emptyEl) emptyEl.hidden = true;
+      if (!silent && chartModalUnidadePrevFocus && chartModalUnidadePrevFocus.focus) {
+        chartModalUnidadePrevFocus.focus();
+      }
+      chartModalUnidadePrevFocus = null;
     }
 
     function rebuildSelect(id, options, value, formatLabel) {
@@ -901,19 +1159,22 @@
 
     function syncFilterOptions() {
       const q = (document.getElementById("q").value || "").trim().toLowerCase();
+      let unidade = document.getElementById("f-unidade").value;
       let tipo = document.getElementById("f-tipo").value;
       let setor = document.getElementById("f-setor").value;
       let plano = document.getElementById("f-plano").value;
       let status = document.getElementById("f-status").value;
 
-      for (let round = 0; round < 6; round++) {
-        const rowsTipo = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "tipo"));
+      for (let round = 0; round < 8; round++) {
+        const rowsUnidade = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "unidade"));
+        const optsUnidade = uniqSort(rowsUnidade.map(r => r.unidade));
+        const rowsTipo = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "tipo"));
         const optsTipo = uniqSort(rowsTipo.map(r => r.tipo_equipamento));
-        const rowsSetor = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "setor"));
+        const rowsSetor = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "setor"));
         const optsSetor = uniqSort(rowsSetor.map(r => r.setor));
-        const rowsPlano = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "plano"));
+        const rowsPlano = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "plano"));
         const optsPlano = uniqSort(rowsPlano.map(r => r.tipo_plano));
-        const rowsStat = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, "status"));
+        const rowsStat = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "status"));
         const rawStat = uniqSort(rowsStat.map(r => r.status).filter(Boolean));
         const optsStatus = [
           ...STATUS_ORDER.filter(s => rawStat.includes(s)),
@@ -921,11 +1182,13 @@
         ];
 
         let changed = false;
+        if (unidade && !optsUnidade.includes(unidade)) { unidade = ""; changed = true; }
         if (tipo && !optsTipo.includes(tipo)) { tipo = ""; changed = true; }
         if (setor && !optsSetor.includes(setor)) { setor = ""; changed = true; }
         if (plano && !optsPlano.includes(plano)) { plano = ""; changed = true; }
         if (status && !optsStatus.includes(status)) { status = ""; changed = true; }
 
+        rebuildSelect("f-unidade", optsUnidade, unidade);
         rebuildSelect("f-tipo", optsTipo, tipo);
         rebuildSelect("f-setor", optsSetor, setor);
         rebuildSelect("f-plano", optsPlano, plano);
@@ -934,6 +1197,7 @@
           return map[v] != null ? map[v] : String(v);
         });
 
+        unidade = document.getElementById("f-unidade").value;
         tipo = document.getElementById("f-tipo").value;
         setor = document.getElementById("f-setor").value;
         plano = document.getElementById("f-plano").value;
@@ -945,11 +1209,15 @@
 
     function renderTable() {
       const q = (document.getElementById("q").value || "").trim().toLowerCase();
+      const unidade = document.getElementById("f-unidade").value;
       const tipo = document.getElementById("f-tipo").value;
       const setor = document.getElementById("f-setor").value;
       const plano = document.getElementById("f-plano").value;
       const status = document.getElementById("f-status").value;
-      const filtered = rowsData.filter(r => rowMatches(r, q, tipo, setor, plano, status, null));
+      const filtered = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, null));
+      filtered.sort((a, b) =>
+        String(a.cod_frota ?? "").localeCompare(String(b.cod_frota ?? ""), "pt-BR", { numeric: true })
+      );
 
       const tb = document.getElementById("tbody");
       tb.innerHTML = "";
@@ -958,12 +1226,13 @@
         const st = r.status || "";
         const badgeClass = st && "PAE".includes(st) ? "badge-" + st : "";
         tr.innerHTML = `
-          <td data-label="Tipo">${escapeHtml(r.tipo_equipamento)}</td>
+          <td data-label="Unidade">${escapeHtml(r.unidade)}</td>
+          <td data-label="Boletim" class="mono">${escapeHtml(r.numero_boletim)}</td>
           <td data-label="Frota" class="mono">${escapeHtml(r.cod_frota)}</td>
-          <td data-label="Ordem OS" class="mono">${escapeHtml(r.ordem_servico)}</td>
-          <td data-label="Data" class="mono">${escapeHtml(r.data_preventiva)}</td>
-          <td data-label="Setor">${escapeHtml(r.setor)}</td>
+          <td data-label="Data" class="mono">${escapeHtml(formatDataOrdemExibicao(r.data_ordem))}</td>
+          <td data-label="Tipo equip.">${escapeHtml(r.tipo_equipamento)}</td>
           <td data-label="Plano">${escapeHtml(r.tipo_plano)}</td>
+          <td data-label="Setor">${escapeHtml(r.setor)}</td>
           <td data-label="Status"><span class="badge ${badgeClass}">${escapeHtml(r.status_label)}</span></td>
         `;
         tb.appendChild(tr);
@@ -978,7 +1247,7 @@
       renderTable();
     }
 
-    ["q", "f-tipo", "f-setor", "f-plano", "f-status"].forEach(id => {
+    ["q", "f-unidade", "f-tipo", "f-setor", "f-plano", "f-status"].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener("input", refresh);
       el.addEventListener("change", refresh);
@@ -988,10 +1257,18 @@
     document.getElementById("chart-modal-close").addEventListener("click", () => closeChartModal());
     document.getElementById("chart-modal-backdrop").addEventListener("click", () => closeChartModal());
 
+    document.getElementById("btn-open-rank-unidade").addEventListener("click", () => openUnidadeRankModal());
+    document.getElementById("chart-unidade-close").addEventListener("click", () => closeUnidadeRankModal());
+    document.getElementById("chart-modal-unidade-backdrop").addEventListener("click", () => closeUnidadeRankModal());
+
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") {
-        const modal = document.getElementById("chart-modal");
-        if (modal && !modal.hidden) {
+        const modalUnidade = document.getElementById("chart-modal-unidade");
+        const modalSetor = document.getElementById("chart-modal");
+        if (modalUnidade && !modalUnidade.hidden) {
+          e.preventDefault();
+          closeUnidadeRankModal();
+        } else if (modalSetor && !modalSetor.hidden) {
           e.preventDefault();
           closeChartModal();
         }
@@ -1035,7 +1312,7 @@
     refresh();
     setSyncState(true, "Monitorando alterações na planilha…");
 
-    const POLL_MS = 20000;
+    const POLL_MS = 10000;
     const POLL_HIDDEN_MS = 45000;
     function pollDelay() {
       return document.hidden ? POLL_HIDDEN_MS : POLL_MS;
@@ -1049,6 +1326,7 @@
       }, pollDelay());
     }
     schedulePoll();
+    setTimeout(syncDataFromServer, 4000);
     document.addEventListener("visibilitychange", () => {
       if (pollTimer) clearTimeout(pollTimer);
       schedulePoll();
