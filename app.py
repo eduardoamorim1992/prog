@@ -167,7 +167,7 @@ def _cell_str(val) -> str:
     return str(val).strip()
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
 app.config["JSON_AS_ASCII"] = False
 
 
