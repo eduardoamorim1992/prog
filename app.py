@@ -6,8 +6,10 @@ Fontes da planilha (por ordem):
 - prog.xlsm / prog.xlsx na pasta do projeto (incl. deploy Vercel no bundle)
 - PROG_EXCEL_URL — download público se não houver ficheiro local
 
-Colunas (Excel): A unidade, C nº boletim, D frota, E status, F data,
-H tipo equipamento, K plano, L setor.
+Colunas (planilha principal): A unidade, C boletim, D frota, E status, F data,
+H tipo equipamento, J chave (liga à aba base), K plano, L setor.
+
+Aba **base**: coluna D = descrição do serviço, coluna E = chave (igual à J da principal).
 """
 
 from __future__ import annotations
@@ -103,10 +105,15 @@ COL_D = 3   # frota do equipamento
 COL_E = 4   # status da ordem (P/A/E)
 COL_F = 5   # data da ordem
 COL_H = 7   # tipo do equipamento
+COL_J = 9   # chave para cruzar com aba base (coluna E)
 COL_K = 10  # plano da ordem
 COL_L = 11  # setor
 
 COL_MAX = COL_L
+
+# Aba base: serviços por chave
+BASE_COL_D = 3  # texto do serviço
+BASE_COL_E = 4  # chave (mesmo valor que coluna J da principal)
 
 STATUS_LABEL = {
     "P": "Programada",
@@ -180,6 +187,7 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
                 "tipo_equipamento": _cell_str(r.iloc[COL_H]),
                 "tipo_plano": _cell_str(tipo_plano),
                 "setor": _cell_str(r.iloc[COL_L]),
+                "chave_os": _cell_str(r.iloc[COL_J]),
                 "status": st,
                 "status_label": STATUS_LABEL.get(st, st or "—"),
             }
@@ -188,15 +196,57 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
     return rows, None
 
 
+def load_servicos_por_chave(path: Path) -> dict[str, list[str]]:
+    """Lê aba 'base': coluna D serviço, E chave. Várias linhas por chave."""
+    try:
+        xl = pd.ExcelFile(path, engine="openpyxl")
+    except Exception:
+        return {}
+
+    sheet_name: str | None = None
+    for name in xl.sheet_names:
+        if name.strip().lower() == "base":
+            sheet_name = name
+            break
+    if not sheet_name:
+        return {}
+
+    try:
+        df = pd.read_excel(path, sheet_name=sheet_name, header=None, engine="openpyxl")
+    except Exception:
+        return {}
+
+    if df.shape[1] <= BASE_COL_E:
+        return {}
+
+    start = 1
+    if df.shape[0] <= start:
+        return {}
+
+    out: dict[str, list[str]] = {}
+    for i in range(start, len(df)):
+        row = df.iloc[i]
+        chave = _cell_str(row.iloc[BASE_COL_E])
+        if not chave:
+            continue
+        serv = _cell_str(row.iloc[BASE_COL_D])
+        if chave not in out:
+            out[chave] = []
+        if serv:
+            out[chave].append(serv)
+
+    return out
+
+
 _cache: dict | None = None
 
 
-def get_rows() -> tuple[list[dict], str | None, str]:
+def get_rows() -> tuple[list[dict], str | None, str, dict[str, list[str]]]:
     global _cache
     path, prep_err = _resolve_readable_excel()
     if prep_err:
         _cache = None
-        return [], prep_err, "missing"
+        return [], prep_err, "missing", {}
 
     if path is None or not path.is_file():
         _cache = None
@@ -209,13 +259,14 @@ def get_rows() -> tuple[list[dict], str | None, str]:
             [],
             f"Nenhuma planilha encontrada em {BASE_DIR}.{extra}",
             "missing",
+            {},
         )
 
     try:
         mtime = path.stat().st_mtime
     except OSError:
         _cache = None
-        return [], "Não foi possível acessar a planilha.", "error"
+        return [], "Não foi possível acessar a planilha.", "error", {}
 
     pkey = str(path.resolve())
     from_url = _is_url_cache_path(path)
@@ -227,16 +278,36 @@ def get_rows() -> tuple[list[dict], str | None, str]:
     if _cache is not None and _cache.get("path") == pkey and _cache.get("mtime") == mtime:
         if from_url:
             if _cache.get("url_fetch") == _url_last_fetch:
-                return _cache["rows"], _cache["err"], revision
+                return (
+                    _cache["rows"],
+                    _cache["err"],
+                    revision,
+                    _cache.get("servicos_por_chave", {}),
+                )
         else:
-            return _cache["rows"], _cache["err"], revision
+            return (
+                _cache["rows"],
+                _cache["err"],
+                revision,
+                _cache.get("servicos_por_chave", {}),
+            )
 
     rows, err = load_rows(path)
-    entry = {"path": pkey, "mtime": mtime, "rows": rows, "err": err}
+    servicos: dict[str, list[str]] = {}
+    if err is None:
+        servicos = load_servicos_por_chave(path)
+
+    entry = {
+        "path": pkey,
+        "mtime": mtime,
+        "rows": rows,
+        "err": err,
+        "servicos_por_chave": servicos,
+    }
     if from_url:
         entry["url_fetch"] = _url_last_fetch
     _cache = entry
-    return rows, err, revision
+    return rows, err, revision, servicos
 
 
 def _cell_str(val) -> str:
@@ -254,7 +325,7 @@ app.config["JSON_AS_ASCII"] = False
 @app.route("/")
 def index():
     path = resolve_excel_path()
-    rows, err, revision = get_rows()
+    rows, err, revision, servicos_por_chave = get_rows()
     apath, _ = _resolve_readable_excel()
     if apath and apath.is_file() and _is_url_cache_path(apath):
         excel_name = "Planilha (URL)"
@@ -266,18 +337,20 @@ def index():
         error=err,
         excel_name=excel_name,
         revision=revision,
+        servicos_por_chave=servicos_por_chave,
     )
 
 
 @app.route("/api/dados")
 def api_dados():
-    rows, err, revision = get_rows()
+    rows, err, revision, servicos_por_chave = get_rows()
     out = jsonify(
         {
             "ok": err is None,
             "error": err,
             "rows": rows if err is None else [],
             "revision": revision,
+            "servicos_por_chave": servicos_por_chave if err is None else {},
         }
     )
     out.headers["Cache-Control"] = "no-store"
