@@ -359,8 +359,8 @@
       padding: 0;
       list-style: none;
     }
-    .servicos-list li {
-      padding: 0.7rem 0.9rem;
+    .servicos-list li.servicos-item {
+      padding: 0.65rem 0.85rem;
       margin-bottom: 0.5rem;
       background: rgba(15, 23, 42, 0.65);
       border: 1px solid rgba(148, 163, 184, 0.14);
@@ -369,8 +369,42 @@
       line-height: 1.45;
       color: #e2e8f0;
     }
-    .servicos-list li:last-child {
+    .servicos-list li.servicos-item:last-child {
       margin-bottom: 0;
+    }
+    .servicos-item-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      cursor: pointer;
+      margin: 0;
+    }
+    .servicos-item-label input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      min-width: 1.2rem;
+      margin-top: 0.12rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .servicos-item-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .servicos-item-label:has(input:checked) .servicos-item-text {
+      opacity: 0.7;
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    .servicos-check-hint {
+      margin: -0.35rem 1.15rem 0.6rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .servicos-check-hint[hidden] {
+      display: none !important;
     }
     .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
     .badge {
@@ -833,6 +867,9 @@
         <button type="button" class="chart-modal-close" id="servicos-modal-close" aria-label="Fechar">&times;</button>
       </div>
       <p class="chart-modal-sub" id="servicos-modal-meta"></p>
+      <p class="servicos-check-hint" id="servicos-check-hint" hidden>
+        Marque o que já foi feito. As caixas ficam guardadas neste navegador (por chave da ordem).
+      </p>
       <div class="servicos-list-wrap">
         <ul id="servicos-modal-list" class="servicos-list"></ul>
         <p class="chart-empty" id="servicos-modal-empty" hidden>Nenhum serviço na aba <strong>base</strong> para esta chave.</p>
@@ -1240,6 +1277,42 @@
       return (m && !m.hidden) || (u && !u.hidden);
     }
 
+    const SERVICOS_DONE_LS = "prog_os_servicos_done:";
+
+    function servicosDoneStorageKey(chave) {
+      return SERVICOS_DONE_LS + encodeURIComponent(chave);
+    }
+
+    function loadServicosDoneIndices(chave) {
+      try {
+        const raw = localStorage.getItem(servicosDoneStorageKey(chave));
+        if (!raw) return new Set();
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return new Set();
+        return new Set(arr.filter(n => Number.isInteger(n) && n >= 0));
+      } catch {
+        return new Set();
+      }
+    }
+
+    function saveServicosDoneIndices(chave, indices) {
+      try {
+        const sorted = [...indices].filter(n => Number.isInteger(n) && n >= 0).sort((a, b) => a - b);
+        localStorage.setItem(servicosDoneStorageKey(chave), JSON.stringify(sorted));
+      } catch {
+        /* quota ou modo privado */
+      }
+    }
+
+    function persistServicosChecksFromList(chave, listEl) {
+      const next = new Set();
+      listEl.querySelectorAll("input.servico-done-cb").forEach(inp => {
+        const i = parseInt(inp.dataset.servicoIdx, 10);
+        if (inp.checked && !Number.isNaN(i)) next.add(i);
+      });
+      saveServicosDoneIndices(chave, next);
+    }
+
     function closeServicosModal(opts) {
       const silent = opts && opts.silent === true;
       const modal = document.getElementById("servicos-modal");
@@ -1263,11 +1336,13 @@
       const listEl = document.getElementById("servicos-modal-list");
       const emptyEl = document.getElementById("servicos-modal-empty");
       const metaEl = document.getElementById("servicos-modal-meta");
+      const hintEl = document.getElementById("servicos-check-hint");
       if (!modal || !listEl || !emptyEl || !metaEl) return;
       servicosModalPrevFocus = document.activeElement;
       const keyNorm = chave != null ? String(chave).trim() : "";
       const lista = keyNorm && servicosPorChave[keyNorm] ? servicosPorChave[keyNorm] : null;
       const bol = boletim != null ? String(boletim).trim() : "";
+      if (hintEl) hintEl.hidden = true;
       if (bol && keyNorm) {
         metaEl.textContent = "Boletim " + bol + " · chave " + keyNorm;
       } else if (bol) {
@@ -1287,9 +1362,27 @@
         emptyEl.textContent = "Nenhum serviço na aba base para esta chave.";
       } else {
         emptyEl.hidden = true;
-        lista.forEach(s => {
+        if (hintEl) hintEl.hidden = false;
+        const doneSet = loadServicosDoneIndices(keyNorm);
+        lista.forEach((s, i) => {
           const li = document.createElement("li");
-          li.textContent = s;
+          li.className = "servicos-item";
+          const label = document.createElement("label");
+          label.className = "servicos-item-label";
+          const inp = document.createElement("input");
+          inp.type = "checkbox";
+          inp.className = "servico-done-cb";
+          inp.dataset.servicoIdx = String(i);
+          inp.checked = doneSet.has(i);
+          const shortLabel = String(s).length > 120 ? String(s).slice(0, 117) + "…" : String(s);
+          inp.setAttribute("aria-label", "Feito: " + shortLabel);
+          inp.addEventListener("change", () => persistServicosChecksFromList(keyNorm, listEl));
+          const span = document.createElement("span");
+          span.className = "servicos-item-text";
+          span.textContent = s;
+          label.appendChild(inp);
+          label.appendChild(span);
+          li.appendChild(label);
           listEl.appendChild(li);
         });
       }
