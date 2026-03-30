@@ -4,5 +4,7 @@ __pycache__/
 venv/
 .env
 *.xlsm
+!prog.xlsm
 *.xlsx
+!prog.xlsx
 .DS_Store
