@@ -2,9 +2,9 @@
 App web: lê a planilha Excel e exibe ordens de serviço.
 
 Fontes da planilha (por ordem):
-- PROG_EXCEL_URL — baixa de um link HTTP(S) público (ideal no Vercel)
-- PROG_EXCEL_PATH — caminho absoluto local
-- prog.xlsm / prog.xlsx na pasta do projeto
+- PROG_EXCEL_PATH — caminho absoluto (prioridade se definido)
+- prog.xlsm / prog.xlsx na pasta do projeto (incl. deploy Vercel no bundle)
+- PROG_EXCEL_URL — download público se não houver ficheiro local
 
 Colunas (Excel): A unidade, C nº boletim, D frota, E status, F data,
 H tipo equipamento, K plano, L setor.
@@ -64,21 +64,19 @@ def _ensure_url_excel(url: str) -> tuple[Path | None, str | None]:
 
 def resolve_excel_path() -> Path:
     """Caminho esperado (para mensagens); pode não existir se nada configurado."""
-    if _excel_url:
-        return _URL_TMP
     if _override:
         return Path(_override).expanduser().resolve()
     for name in ("prog.xlsm", "prog.xlsx"):
         p = (BASE_DIR / name).resolve()
         if p.is_file():
             return p
+    if _excel_url:
+        return _URL_TMP
     return (BASE_DIR / "prog.xlsx").resolve()
 
 
 def _resolve_readable_excel() -> tuple[Path | None, str | None]:
     """Path de um ficheiro que existe e pode ser lido, ou (None, erro)."""
-    if _excel_url:
-        return _ensure_url_excel(_excel_url)
     if _override:
         p = Path(_override).expanduser().resolve()
         return p, None
@@ -86,7 +84,16 @@ def _resolve_readable_excel() -> tuple[Path | None, str | None]:
         p = (BASE_DIR / name).resolve()
         if p.is_file():
             return p, None
+    if _excel_url:
+        return _ensure_url_excel(_excel_url)
     return (BASE_DIR / "prog.xlsx").resolve(), None
+
+
+def _is_url_cache_path(path: Path) -> bool:
+    try:
+        return path.resolve() == _URL_TMP.resolve()
+    except OSError:
+        return False
 
 
 # Índices 0-based (coluna A = 0)
@@ -196,8 +203,7 @@ def get_rows() -> tuple[list[dict], str | None, str]:
         extra = ""
         if os.environ.get("VERCEL"):
             extra = (
-                " No Vercel, crie a variável PROG_EXCEL_URL com um link direto ao ficheiro .xlsx "
-                "(ex.: ficheiro público no OneDrive/Google Drive ou raw no GitHub)."
+                " Inclua prog.xlsx no repositório ou defina PROG_EXCEL_URL (link direto ao .xlsx)."
             )
         return (
             [],
@@ -212,31 +218,22 @@ def get_rows() -> tuple[list[dict], str | None, str]:
         return [], "Não foi possível acessar a planilha.", "error"
 
     pkey = str(path.resolve())
-    if _excel_url:
+    from_url = _is_url_cache_path(path)
+    if from_url:
         revision = f"url:{mtime:.4f}:{_url_last_fetch:.0f}"
     else:
         revision = f"{mtime:.7f}:{path.name}"
 
-    if (
-        _cache is not None
-        and _cache.get("path") == pkey
-        and _cache.get("mtime") == mtime
-        and not _excel_url
-    ):
-        return _cache["rows"], _cache["err"], revision
-
-    if (
-        _cache is not None
-        and _excel_url
-        and _cache.get("path") == pkey
-        and _cache.get("mtime") == mtime
-        and _cache.get("url_fetch") == _url_last_fetch
-    ):
-        return _cache["rows"], _cache["err"], revision
+    if _cache is not None and _cache.get("path") == pkey and _cache.get("mtime") == mtime:
+        if from_url:
+            if _cache.get("url_fetch") == _url_last_fetch:
+                return _cache["rows"], _cache["err"], revision
+        else:
+            return _cache["rows"], _cache["err"], revision
 
     rows, err = load_rows(path)
     entry = {"path": pkey, "mtime": mtime, "rows": rows, "err": err}
-    if _excel_url:
+    if from_url:
         entry["url_fetch"] = _url_last_fetch
     _cache = entry
     return rows, err, revision
@@ -258,7 +255,8 @@ app.config["JSON_AS_ASCII"] = False
 def index():
     path = resolve_excel_path()
     rows, err, revision = get_rows()
-    if _excel_url:
+    apath, _ = _resolve_readable_excel()
+    if apath and apath.is_file() and _is_url_cache_path(apath):
         excel_name = "Planilha (URL)"
     else:
         excel_name = path.name if path.is_file() else "prog.xlsm ou prog.xlsx"
