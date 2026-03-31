@@ -112,6 +112,27 @@ COL_L = 11  # L setor
 
 COL_MAX = COL_L
 
+# Nome amigável por código da instância (coluna A). Códigos não listados seguem o texto da planilha.
+UNIDADE_NOMES: dict[str, str] = {
+    "USA1": "Unidade Iguatemi",
+    "USA2": "Unidade Paranacity",
+    "USA3": "Unidade Tapejara",
+    "USA4": "Unidade Ivate",
+    "USA13": "Unidade Terra Rica",
+    "USA15": "Unidade Rondon",
+    "USA16": "Unidade Cidade Gaucha",
+    "USA17": "Unidade URP",
+    "USA18": "Unidade Moreira Sales",
+}
+
+
+def _unidade_exibicao(codigo: str) -> str:
+    c = (codigo or "").strip().upper()
+    if not c:
+        return ""
+    return UNIDADE_NOMES.get(c, (codigo or "").strip())
+
+
 # Aba base: serviços por chave
 BASE_COL_D = 3  # texto do serviço
 BASE_COL_E = 4  # chave (mesmo valor que coluna J da principal)
@@ -191,9 +212,11 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
         data_str = _format_data_br(r.iloc[COL_E])
 
         st = _normalize_status(r.iloc[COL_D])
+        cod_unidade = _cell_str(r.iloc[COL_A])
         rows.append(
             {
-                "unidade": _cell_str(r.iloc[COL_A]),
+                "unidade": _unidade_exibicao(cod_unidade),
+                "unidade_codigo": cod_unidade,
                 "numero_boletim": _cell_str(r.iloc[COL_B]),
                 "cod_frota": _cell_str(r.iloc[COL_C]),
                 "data_ordem": data_str,

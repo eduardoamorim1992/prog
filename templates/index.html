@@ -546,16 +546,16 @@
     @keyframes atrasadoGlow {
       0%,
       100% {
-        background: rgba(251, 146, 60, 0.06);
+        background: rgba(248, 113, 113, 0.06);
         box-shadow:
-          inset 0 0 0 1px rgba(251, 146, 60, 0.35),
-          0 0 0 rgba(251, 146, 60, 0);
+          inset 0 0 0 1px rgba(248, 113, 113, 0.5),
+          0 0 0 rgba(248, 113, 113, 0);
       }
       50% {
-        background: rgba(251, 146, 60, 0.12);
+        background: rgba(248, 113, 113, 0.16);
         box-shadow:
-          inset 0 0 0 2px rgba(251, 146, 60, 0.55),
-          0 0 18px rgba(251, 146, 60, 0.18);
+          inset 0 0 0 2px rgba(248, 113, 113, 0.8),
+          0 0 22px rgba(248, 113, 113, 0.4);
       }
     }
 
@@ -577,26 +577,26 @@
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #ffedd5;
-      background: rgba(251, 146, 60, 0.12);
-      border: 1px solid rgba(251, 146, 60, 0.38);
+      color: #fee2e2;
+      background: rgba(248, 113, 113, 0.14);
+      border: 1px solid rgba(248, 113, 113, 0.6);
       border-radius: 999px;
       padding: 0.12rem 0.45rem;
       width: fit-content;
     }
 
     .btn-chart.btn-atrasados {
-      background: linear-gradient(135deg, rgba(251, 146, 60, 0.18), rgba(251, 191, 36, 0.12));
-      border: 1px solid rgba(251, 146, 60, 0.42);
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.22), rgba(248, 113, 113, 0.08));
+      border: 1px solid rgba(248, 113, 113, 0.6);
       transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s, opacity 0.12s;
     }
     .btn-chart.btn-atrasados:hover {
-      border-color: rgba(251, 146, 60, 0.65);
-      box-shadow: 0 4px 20px rgba(251, 146, 60, 0.16);
+      border-color: rgba(248, 113, 113, 0.9);
+      box-shadow: 0 4px 22px rgba(248, 113, 113, 0.28);
     }
     .btn-chart.btn-atrasados.active {
       opacity: 1;
-      box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.25);
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.45);
     }
     .empty {
       color: var(--muted);
@@ -1089,6 +1089,15 @@
       return "row-theme-orange";
     }
 
+    /** Código da instância (USA…) para tema; fallback se vier planilha antiga sem `unidade_codigo`. */
+    function unidadeCodigoParaTema(r) {
+      if (!r) return "";
+      const c = r.unidade_codigo != null && String(r.unidade_codigo).trim() !== ""
+        ? String(r.unidade_codigo).trim()
+        : String(r.unidade ?? "").trim();
+      return c;
+    }
+
     function parseDataOrdemParaDate(s) {
       if (s == null) return null;
       const t = String(s).trim();
@@ -1130,15 +1139,17 @@
       const unidadeSel = document.getElementById("f-unidade")?.value || "";
       const u = String(unidadeSel).trim();
       if (u) {
-        setPageThemeClass(themeClassFromRowTheme(unidadeRowTheme(u)));
+        const row = rowsData.find(x => x.unidade === u);
+        const cod = row ? unidadeCodigoParaTema(row) : u;
+        setPageThemeClass(themeClassFromRowTheme(unidadeRowTheme(cod)));
         return;
       }
       if (!filteredRows || filteredRows.length === 0) {
         setPageThemeClass("");
         return;
       }
-      const first = unidadeRowTheme(filteredRows[0].unidade);
-      const allSame = filteredRows.every(r => unidadeRowTheme(r.unidade) === first);
+      const first = unidadeRowTheme(unidadeCodigoParaTema(filteredRows[0]));
+      const allSame = filteredRows.every(r => unidadeRowTheme(unidadeCodigoParaTema(r)) === first);
       setPageThemeClass(allSame ? themeClassFromRowTheme(first) : "");
     }
 
@@ -1159,7 +1170,7 @@
       if (ignore !== "plano" && plano && r.tipo_plano !== plano) return false;
       if (ignore !== "status" && status && r.status !== status) return false;
       if (q) {
-        const hay = [r.unidade, r.numero_boletim, r.cod_frota, r.chave_os, r.tipo_equipamento, r.setor, r.tipo_plano, r.status_label]
+        const hay = [r.unidade, r.unidade_codigo, r.numero_boletim, r.cod_frota, r.chave_os, r.tipo_equipamento, r.setor, r.tipo_plano, r.status_label]
           .join(" ")
           .toLowerCase();
         if (!hay.includes(q)) return false;
@@ -1730,7 +1741,7 @@
       tb.innerHTML = "";
       filtered.forEach(r => {
         const tr = document.createElement("tr");
-        tr.className = "row-order " + unidadeRowTheme(r.unidade);
+        tr.className = "row-order " + unidadeRowTheme(unidadeCodigoParaTema(r));
         tr.setAttribute("tabindex", "0");
         tr.setAttribute("role", "button");
         const chave = r.chave_os != null ? String(r.chave_os) : "";
