@@ -6,8 +6,8 @@ Fontes da planilha (por ordem):
 - prog.xlsm / prog.xlsx na pasta do projeto (incl. deploy Vercel no bundle)
 - PROG_EXCEL_URL — download público se não houver ficheiro local
 
-Colunas (planilha principal): A unidade, C boletim, D frota, E status, F data,
-H tipo equipamento, J chave (liga à aba base), K plano, L setor.
+Colunas (planilha principal): A unidade, B boletim, C frota, D status, E data,
+H tipo/grupo equipamento, J chave (liga à aba base), K plano, L setor.
 
 Aba **base**: coluna D = descrição do serviço, coluna E = chave (igual à J da principal).
 """
@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import numbers
 import os
+import re
 import time
 import urllib.error
 import urllib.request
@@ -98,16 +99,16 @@ def _is_url_cache_path(path: Path) -> bool:
         return False
 
 
-# Índices 0-based (coluna A = 0)
-COL_A = 0   # unidade
-COL_C = 2   # número do boletim
-COL_D = 3   # frota do equipamento
-COL_E = 4   # status da ordem (P/A/E)
-COL_F = 5   # data da ordem
-COL_H = 7   # tipo do equipamento
-COL_J = 9   # chave para cruzar com aba base (coluna E)
-COL_K = 10  # plano da ordem
-COL_L = 11  # setor
+# Índices 0-based (coluna A = 0). Planilha atual: B BOLETIM, C FROTA, D STATUS, E DATA.
+COL_A = 0   # A unidade (INSTÂNCIA)
+COL_B = 1   # B número do boletim
+COL_C = 2   # C frota
+COL_D = 3   # D status (P/A/E)
+COL_E = 4   # E data da ordem
+COL_H = 7   # H grupo / tipo equipamento
+COL_J = 9   # J chave → aba base col. E
+COL_K = 10  # K plano
+COL_L = 11  # L setor
 
 COL_MAX = COL_L
 
@@ -120,6 +121,16 @@ STATUS_LABEL = {
     "A": "Andamento",
     "E": "Encerrada",
 }
+
+
+def _clean_excel_escapes(s: str) -> str:
+    """Remove códigos tipo _x000D_ (CR/LF do Excel) e normaliza espaços."""
+    if not s:
+        return s
+    t = re.sub(r"_x000D_", " ", s, flags=re.I)
+    t = re.sub(r"_x000A_", " ", t, flags=re.I)
+    t = re.sub(r"_x0009_", " ", t, flags=re.I)
+    return re.sub(r"\s+", " ", t).strip()
 
 
 def _normalize_status(raw) -> str:
@@ -139,7 +150,7 @@ def _format_data_br(raw) -> str:
         return ""
 
     if isinstance(raw, str):
-        raw = raw.strip()
+        raw = _clean_excel_escapes(raw.strip())
         if not raw:
             return ""
 
@@ -147,6 +158,8 @@ def _format_data_br(raw) -> str:
     if pd.isna(ts) and isinstance(raw, numbers.Real) and not isinstance(raw, bool):
         ts = pd.to_datetime(float(raw), unit="d", origin="1899-12-30", errors="coerce")
     if pd.isna(ts):
+        if isinstance(raw, str):
+            return raw
         return str(raw).strip()
 
     return ts.strftime("%d.%m.%Y")
@@ -175,14 +188,14 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
     for i in range(start, len(df)):
         r = df.iloc[i]
         tipo_plano = r.iloc[COL_K]
-        data_str = _format_data_br(r.iloc[COL_F])
+        data_str = _format_data_br(r.iloc[COL_E])
 
-        st = _normalize_status(r.iloc[COL_E])
+        st = _normalize_status(r.iloc[COL_D])
         rows.append(
             {
                 "unidade": _cell_str(r.iloc[COL_A]),
-                "numero_boletim": _cell_str(r.iloc[COL_C]),
-                "cod_frota": _cell_str(r.iloc[COL_D]),
+                "numero_boletim": _cell_str(r.iloc[COL_B]),
+                "cod_frota": _cell_str(r.iloc[COL_C]),
                 "data_ordem": data_str,
                 "tipo_equipamento": _cell_str(r.iloc[COL_H]),
                 "tipo_plano": _cell_str(tipo_plano),
@@ -315,7 +328,10 @@ def _cell_str(val) -> str:
         return ""
     if isinstance(val, float) and val == int(val):
         return str(int(val))
-    return str(val).strip()
+    s = str(val).strip()
+    if "_x" in s.lower():
+        s = _clean_excel_escapes(s)
+    return s
 
 
 app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
