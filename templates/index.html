@@ -88,7 +88,7 @@
       line-height: 1.5;
     }
     .wrap {
-      max-width: 1320px;
+      max-width: min(1680px, 100%);
       margin: 0 auto;
       padding:
         max(clamp(1.25rem, 4vw, 2.5rem), env(safe-area-inset-top))
@@ -98,6 +98,48 @@
     }
     header.hero {
       margin-bottom: 1.75rem;
+    }
+    .hero-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem 1.25rem;
+    }
+    .hero-bar > div:first-child {
+      min-width: min(100%, 240px);
+    }
+    a.btn-dashboard {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 42px;
+      padding: 0.45rem 1rem;
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--chart-btn-bg);
+      border: 1px solid var(--chart-btn-border);
+      border-radius: 11px;
+      box-shadow: 0 2px 14px var(--chart-btn-shadow);
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+      white-space: nowrap;
+    }
+    a.btn-dashboard:hover {
+      border-color: var(--chart-btn-border-hover);
+      box-shadow: 0 4px 22px var(--chart-btn-shadow);
+    }
+    a.btn-dashboard svg {
+      width: 1.05rem;
+      height: 1.05rem;
+      opacity: 0.95;
+    }
+    @media (max-width: 520px) {
+      .hero-bar { flex-direction: column; align-items: stretch; }
+      a.btn-dashboard { width: 100%; }
     }
     .eyebrow {
       font-size: 0.72rem;
@@ -337,9 +379,11 @@
     }
     table.data-table {
       width: 100%;
+      min-width: 1280px;
       border-collapse: separate;
       border-spacing: 0;
       font-size: 0.875rem;
+      table-layout: auto;
     }
     .data-table thead {
       position: sticky;
@@ -368,12 +412,50 @@
       padding-right: 1.25rem;
     }
     .data-table td {
-      padding: 0.8rem 1.15rem;
+      padding: 0.85rem 1.2rem;
       border-bottom: 1px solid rgba(148, 163, 184, 0.06);
       vertical-align: top;
       color: #e2e8f0;
-      overflow-wrap: anywhere;
-      word-break: break-word;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+    /* Larguras mínimas para não “esmagar” texto em ecrãs largos */
+    @media (min-width: 640px) {
+      .data-table th:nth-child(1),
+      .data-table td:nth-child(1) {
+        min-width: 13.5rem;
+      }
+      .data-table th:nth-child(2),
+      .data-table td:nth-child(2) {
+        min-width: 9.5rem;
+      }
+      .data-table th:nth-child(3),
+      .data-table td:nth-child(3) {
+        min-width: 7rem;
+        white-space: nowrap;
+      }
+      .data-table th:nth-child(4),
+      .data-table td:nth-child(4) {
+        min-width: 7.5rem;
+        white-space: nowrap;
+      }
+      .data-table th:nth-child(5),
+      .data-table td:nth-child(5) {
+        min-width: 11rem;
+      }
+      .data-table th:nth-child(6),
+      .data-table td:nth-child(6) {
+        min-width: 22rem;
+      }
+      .data-table th:nth-child(7),
+      .data-table td:nth-child(7) {
+        min-width: 9rem;
+      }
+      .data-table th:nth-child(8),
+      .data-table td:nth-child(8) {
+        min-width: 8.5rem;
+        white-space: nowrap;
+      }
     }
     .data-table td:first-child {
       padding-left: 1.25rem;
@@ -517,6 +599,18 @@
       display: none !important;
     }
     .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .cell-plano .plano-codigos {
+      display: block;
+      margin-top: 0.2rem;
+      font-size: 0.78rem;
+      line-height: 1.35;
+      color: var(--muted);
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+    .boletim-numero {
+      white-space: nowrap;
+    }
     .badge {
       display: inline-flex;
       align-items: center;
@@ -525,6 +619,7 @@
       font-size: 0.78rem;
       font-weight: 600;
       letter-spacing: 0.02em;
+      white-space: nowrap;
     }
     .badge-P {
       background: rgba(56, 189, 248, 0.18);
@@ -583,6 +678,8 @@
       border-radius: 999px;
       padding: 0.12rem 0.45rem;
       width: fit-content;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .btn-chart.btn-atrasados {
@@ -650,6 +747,7 @@
       }
       table.data-table {
         display: block;
+        min-width: 0;
         font-size: 0.88rem;
       }
       thead {
@@ -896,8 +994,18 @@
   <div class="wrap">
     <p class="site-credit">Desenvolvido por Eduardo Café</p>
     <header class="hero">
-      <p class="eyebrow">Manutenção preventiva</p>
-      <h1>Ordens de serviço</h1>
+      <div class="hero-bar">
+        <div>
+          <p class="eyebrow">Manutenção preventiva</p>
+          <h1>Ordens de serviço</h1>
+        </div>
+        <a class="btn-dashboard" href="/dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 19V5M4 19h16M8 17V9M12 17V7M16 17v-5" />
+          </svg>
+          Dashboard de análise
+        </a>
+      </div>
     </header>
 
     {% if error %}
@@ -1170,7 +1278,7 @@
       if (ignore !== "plano" && plano && r.tipo_plano !== plano) return false;
       if (ignore !== "status" && status && r.status !== status) return false;
       if (q) {
-        const hay = [r.unidade, r.unidade_codigo, r.numero_boletim, r.cod_frota, r.chave_os, r.tipo_equipamento, r.setor, r.tipo_plano, r.status_label]
+        const hay = [r.unidade, r.unidade_codigo, r.numero_boletim, r.cod_frota, r.chave_os, r.tipo_equipamento, r.setor, r.tipo_plano, r.plano_codigos, r.status_label]
           .join(" ")
           .toLowerCase();
         if (!hay.includes(q)) return false;
@@ -1754,11 +1862,11 @@
         const atrasado = isProgramadaAtrasada(r);
         tr.innerHTML = `
           <td data-label="Unidade">${escapeHtml(r.unidade)}</td>
-          <td data-label="Boletim" class="mono ${atrasado ? "boletim-atrasado" : ""}">${escapeHtml(r.numero_boletim)}${atrasado ? "<div class=\"atrasado-tag\">Atrasado</div>" : ""}</td>
+          <td data-label="Boletim" class="mono ${atrasado ? "boletim-atrasado" : ""}"><span class="boletim-numero">${escapeHtml(r.numero_boletim)}</span>${atrasado ? "<div class=\"atrasado-tag\">Atrasado</div>" : ""}</td>
           <td data-label="Frota" class="mono">${escapeHtml(r.cod_frota)}</td>
           <td data-label="Data" class="mono">${escapeHtml(formatDataOrdemExibicao(r.data_ordem))}</td>
           <td data-label="Tipo equip.">${escapeHtml(r.tipo_equipamento)}</td>
-          <td data-label="Plano">${escapeHtml(r.tipo_plano)}</td>
+          <td data-label="Plano" class="cell-plano">${escapeHtml(r.tipo_plano)}${r.plano_codigos ? `<div class="plano-codigos mono">${escapeHtml(r.plano_codigos)}</div>` : ""}</td>
           <td data-label="Setor">${escapeHtml(r.setor)}</td>
           <td data-label="Status"><span class="badge ${badgeClass}">${escapeHtml(r.status_label)}</span></td>
         `;

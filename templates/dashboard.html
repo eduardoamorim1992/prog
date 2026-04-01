@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#080c12" />
+  <meta name="color-scheme" content="dark" />
+  <title>Dashboard — Preventivas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #080c12;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --border: rgba(148, 163, 184, 0.14);
+      --surface: rgba(22, 30, 46, 0.85);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--text);
+      background: var(--bg0);
+      background-image:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(56, 189, 248, 0.14), transparent 50%),
+        linear-gradient(180deg, #0d1320 0%, var(--bg0) 100%);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: max(1.25rem, env(safe-area-inset-top)) clamp(1rem, 3vw, 1.75rem) 3rem;
+    }
+    .nav-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 1.1rem; height: 1.1rem; }
+    .btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(129, 140, 248, 0.12));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-refresh:hover {
+      border-color: rgba(56, 189, 248, 0.55);
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.12);
+    }
+    .btn-refresh:disabled { opacity: 0.55; cursor: wait; }
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.35rem;
+    }
+    h1 {
+      font-size: clamp(1.45rem, 4vw, 1.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .dash-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .dash-toolbar label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .dash-select {
+      min-height: 44px;
+      min-width: min(100%, 320px);
+      padding: 0.45rem 0.95rem;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      cursor: pointer;
+    }
+    .dash-select:focus {
+      outline: 2px solid rgba(56, 189, 248, 0.45);
+      outline-offset: 2px;
+    }
+    .err {
+      background: rgba(127, 29, 29, 0.35);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.75rem;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      backdrop-filter: blur(12px);
+    }
+    .kpi-card.highlight {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.08) inset;
+    }
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0 0 0.35rem;
+    }
+    .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      margin: 0;
+      line-height: 1.15;
+    }
+    .kpi-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+    }
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.15rem 1.25rem 1.35rem;
+      margin-bottom: 1.15rem;
+      backdrop-filter: blur(16px);
+    }
+    .section h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .section p.desc {
+      margin: 0 0 1rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .chart-box {
+      position: relative;
+      min-height: 260px;
+      max-height: 420px;
+    }
+    .chart-box.tall { min-height: 300px; }
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 800px) {
+      .chart-row { grid-template-columns: 1fr; }
+    }
+    .chart-empty {
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .site-credit {
+      margin: 2rem 0 0;
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav-bar">
+      <a class="back-link" href="/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+        Voltar às ordens
+      </a>
+      <button type="button" class="btn-refresh" id="btn-refresh">Atualizar dados</button>
+    </nav>
+
+    <p class="eyebrow">Análise</p>
+    <h1>Dashboard de performance</h1>
+
+    <div id="dash-toolbar" class="dash-toolbar" hidden>
+      <label for="dash-unidade">Unidade</label>
+      <select id="dash-unidade" class="dash-select" aria-label="Filtrar por unidade"></select>
+    </div>
+
+    <div id="err-box" class="err" hidden></div>
+
+    <div id="dash-content" hidden>
+      <div class="kpi-grid" id="kpi-grid"></div>
+
+      <div class="section">
+        <h2>Aderência diária</h2>
+        <p class="desc">Percentual de encerradas por dia, com volume de ordens (eixo direito).</p>
+        <div class="chart-box tall" id="wrap-daily">
+          <canvas id="chart-daily" aria-label="Aderência diária"></canvas>
+        </div>
+        <p class="desc" id="daily-empty" hidden>Nenhuma ordem com data válida para montar a série diária.</p>
+      </div>
+
+      <div class="chart-row">
+        <div class="section">
+          <h2>Distribuição por status</h2>
+          <p class="desc">Programada, andamento e encerrada (base completa carregada).</p>
+          <div class="chart-box" id="wrap-status">
+            <canvas id="chart-status" aria-label="Status"></canvas>
+          </div>
+        </div>
+        <div class="section">
+          <h2>Volume diário</h2>
+          <p class="desc">Quantidade de ordens por data da ordem.</p>
+          <div class="chart-box" id="wrap-volume">
+            <canvas id="chart-volume" aria-label="Volume diário"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Resumo por unidade</h2>
+        <p class="desc">Aderência (% encerradas) e volume — ordenado por melhor desempenho.</p>
+        <div class="chart-box tall" id="wrap-unidade">
+          <canvas id="chart-unidade" aria-label="Unidades"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <p class="site-credit">Desenvolvido por Eduardo Café</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    (function () {
+      const fmtPct = (n) => (Math.round(n * 10) / 10).toFixed(1).replace(".", ",") + "%";
+
+      function parseDataOrdemParaDate(s) {
+        if (s == null) return null;
+        const t = String(s).trim();
+        if (!t) return null;
+        const ddmmyyyy = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(t);
+        if (ddmmyyyy) return new Date(Number(ddmmyyyy[3]), Number(ddmmyyyy[2]) - 1, Number(ddmmyyyy[1]));
+        const ymd = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+        if (ymd) return new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3]));
+        const d = new Date(t);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      function dateKey(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
+
+      function labelShort(isoKey) {
+        const [y, m, d] = isoKey.split("-");
+        return `${d}/${m}`;
+      }
+
+      function isProgramadaAtrasada(r) {
+        if (!r || r.status !== "P") return false;
+        const dt = parseDataOrdemParaDate(r.data_ordem);
+        if (!dt) return false;
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        return dt < today;
+      }
+
+      function buildDaily(rows) {
+        const map = new Map();
+        for (const r of rows) {
+          const dt = parseDataOrdemParaDate(r.data_ordem);
+          if (!dt) continue;
+          const k = dateKey(dt);
+          if (!map.has(k)) map.set(k, { total: 0, enc: 0 });
+          const o = map.get(k);
+          o.total += 1;
+          if (r.status === "E") o.enc += 1;
+        }
+        const list = [...map.entries()]
+          .map(([key, v]) => ({
+            key,
+            total: v.total,
+            enc: v.enc,
+            pct: v.total ? (100 * v.enc) / v.total : 0,
+          }))
+          .sort((a, b) => a.key.localeCompare(b.key));
+        return list;
+      }
+
+      function buildUnidade(rows) {
+        const m = new Map();
+        for (const r of rows) {
+          const u = (r.unidade != null && String(r.unidade).trim()) ? String(r.unidade).trim() : "(Sem unidade)";
+          if (!m.has(u)) m.set(u, { total: 0, enc: 0 });
+          const o = m.get(u);
+          o.total += 1;
+          if (r.status === "E") o.enc += 1;
+        }
+        return [...m.entries()]
+          .map(([unidade, v]) => ({
+            unidade,
+            total: v.total,
+            pct: v.total ? (100 * v.enc) / v.total : 0,
+          }))
+          .sort((a, b) => b.pct - a.pct || a.unidade.localeCompare(b.unidade, "pt-BR"));
+      }
+
+      function countStatus(rows) {
+        let p = 0, a = 0, e = 0;
+        for (const r of rows) {
+          const s = r.status || "";
+          if (s === "P") p++;
+          else if (s === "A") a++;
+          else if (s === "E") e++;
+        }
+        return { p, a, e };
+      }
+
+      let chartDaily = null;
+      let chartStatus = null;
+      let chartVolume = null;
+      let chartUnidade = null;
+      let allRows = [];
+
+      function populateUnidadeSelect(rows) {
+        const sel = document.getElementById("dash-unidade");
+        const current = sel.value;
+        sel.innerHTML = "";
+        const optAll = document.createElement("option");
+        optAll.value = "";
+        optAll.textContent = "Todas as unidades";
+        sel.appendChild(optAll);
+        const uniq = [
+          ...new Set(
+            rows.map((r) => (r.unidade != null ? String(r.unidade).trim() : "")).filter(Boolean),
+          ),
+        ];
+        uniq.sort((a, b) => a.localeCompare(b, "pt-BR"));
+        for (const u of uniq) {
+          const o = document.createElement("option");
+          o.value = u;
+          o.textContent = u;
+          sel.appendChild(o);
+        }
+        if (current && [...sel.options].some((op) => op.value === current)) {
+          sel.value = current;
+        }
+      }
+
+      function applyFilterAndRender() {
+        const u = (document.getElementById("dash-unidade").value || "").trim();
+        const filtered = u ? allRows.filter((r) => (r.unidade || "").trim() === u) : allRows;
+        render(filtered);
+      }
+
+      function destroyAll() {
+        [chartDaily, chartStatus, chartVolume, chartUnidade].forEach((c) => {
+          if (c) c.destroy();
+        });
+        chartDaily = chartStatus = chartVolume = chartUnidade = null;
+      }
+
+      const commonText = "#94a3b8";
+      const grid = "rgba(148, 163, 184, 0.12)";
+
+      function render(rows) {
+        destroyAll();
+
+        const total = rows.length;
+        const enc = rows.filter((r) => r.status === "E").length;
+        const prog = rows.filter((r) => r.status === "P").length;
+        const and = rows.filter((r) => r.status === "A").length;
+        const atras = rows.filter(isProgramadaAtrasada).length;
+        const adGlobal = total ? (100 * enc) / total : 0;
+
+        const daily = buildDaily(rows);
+        const last7 = daily.slice(-7);
+        const avg7 = last7.length
+          ? last7.reduce((s, x) => s + x.pct, 0) / last7.length
+          : null;
+
+        const kpi = document.getElementById("kpi-grid");
+        kpi.innerHTML = `
+          <div class="kpi-card highlight">
+            <p class="kpi-label">Aderência global</p>
+            <p class="kpi-value">${fmtPct(adGlobal)}</p>
+            <p class="kpi-hint">${enc} de ${total} encerradas</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Média 7 dias (aderência)</p>
+            <p class="kpi-value">${avg7 != null ? fmtPct(avg7) : "—"}</p>
+            <p class="kpi-hint">Últimas datas na base</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Programadas</p>
+            <p class="kpi-value">${prog}</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Em andamento</p>
+            <p class="kpi-value">${and}</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Encerradas</p>
+            <p class="kpi-value">${enc}</p>
+          </div>
+          <div class="kpi-card">
+            <p class="kpi-label">Atrasadas</p>
+            <p class="kpi-value">${atras}</p>
+            <p class="kpi-hint">Programadas com data já vencida</p>
+          </div>
+        `;
+
+        document.getElementById("daily-empty").hidden = daily.length > 0;
+        document.getElementById("wrap-daily").style.display = daily.length ? "block" : "none";
+
+        if (daily.length) {
+          const labels = daily.map((x) => labelShort(x.key));
+          const pctData = daily.map((x) => Math.round(x.pct * 10) / 10);
+          const volData = daily.map((x) => x.total);
+
+          const ctx = document.getElementById("chart-daily").getContext("2d");
+          const grad = ctx.createLinearGradient(0, 0, 0, 300);
+          grad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
+          grad.addColorStop(1, "rgba(56, 189, 248, 0.02)");
+
+          chartDaily = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  type: "line",
+                  label: "Aderência (%)",
+                  data: pctData,
+                  borderColor: "#38bdf8",
+                  backgroundColor: grad,
+                  fill: true,
+                  tension: 0.25,
+                  yAxisID: "y",
+                  pointRadius: daily.length > 40 ? 0 : 3,
+                  pointHoverRadius: 5,
+                  order: 2,
+                },
+                {
+                  type: "bar",
+                  label: "Volume (OS)",
+                  data: volData,
+                  backgroundColor: "rgba(129, 140, 248, 0.35)",
+                  borderColor: "rgba(129, 140, 248, 0.5)",
+                  borderWidth: 1,
+                  yAxisID: "y1",
+                  order: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: { labels: { color: commonText } },
+                tooltip: {
+                  callbacks: {
+                    footer: (items) => {
+                      const i = items[0].dataIndex;
+                      const d = daily[i];
+                      return `Encerradas: ${d.enc} / ${d.total}`;
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  ticks: {
+                    color: commonText,
+                    maxRotation: 45,
+                    minRotation: 0,
+                    autoSkip: true,
+                    maxTicksLimit: 18,
+                  },
+                  grid: { color: grid },
+                },
+                y: {
+                  position: "left",
+                  min: 0,
+                  max: 100,
+                  ticks: { color: commonText, callback: (v) => v + "%" },
+                  grid: { color: grid },
+                  title: { display: true, text: "Aderência", color: commonText, font: { size: 11 } },
+                },
+                y1: {
+                  position: "right",
+                  min: 0,
+                  ticks: { color: "#a5b4fc" },
+                  grid: { drawOnChartArea: false },
+                  title: { display: true, text: "Volume", color: "#a5b4fc", font: { size: 11 } },
+                },
+              },
+            },
+          });
+        }
+
+        const st = countStatus(rows);
+        const stTotal = st.p + st.a + st.e;
+        if (stTotal > 0) {
+          chartStatus = new Chart(document.getElementById("chart-status"), {
+            type: "doughnut",
+            data: {
+              labels: ["Programada", "Andamento", "Encerrada"],
+              datasets: [
+                {
+                  data: [st.p, st.a, st.e],
+                  backgroundColor: [
+                    "rgba(56, 189, 248, 0.55)",
+                    "rgba(251, 191, 36, 0.55)",
+                    "rgba(34, 197, 94, 0.55)",
+                  ],
+                  borderWidth: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: "bottom", labels: { color: commonText, padding: 12 } },
+              },
+            },
+          });
+        }
+
+        if (daily.length) {
+          chartVolume = new Chart(document.getElementById("chart-volume"), {
+            type: "bar",
+            data: {
+              labels: daily.map((x) => labelShort(x.key)),
+              datasets: [
+                {
+                  label: "Ordens",
+                  data: daily.map((x) => x.total),
+                  backgroundColor: "rgba(45, 212, 191, 0.35)",
+                  borderColor: "rgba(45, 212, 191, 0.55)",
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: {
+                  ticks: { color: commonText, maxTicksLimit: 14, maxRotation: 45 },
+                  grid: { color: grid },
+                },
+                y: {
+                  beginAtZero: true,
+                  ticks: { color: commonText, stepSize: 1 },
+                  grid: { color: grid },
+                },
+              },
+            },
+          });
+        }
+
+        const uni = buildUnidade(rows);
+        if (uni.length) {
+          chartUnidade = new Chart(document.getElementById("chart-unidade"), {
+            type: "bar",
+            data: {
+              labels: uni.map((x) => x.unidade),
+              datasets: [
+                {
+                  label: "Aderência %",
+                  data: uni.map((x) => Math.round(x.pct * 10) / 10),
+                  backgroundColor: "rgba(56, 189, 248, 0.45)",
+                  borderColor: "rgba(56, 189, 248, 0.65)",
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    afterLabel: (item) => {
+                      const u = uni[item.dataIndex];
+                      return `Volume: ${u.total} OS`;
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  min: 0,
+                  max: 100,
+                  ticks: { color: commonText, callback: (v) => v + "%" },
+                  grid: { color: grid },
+                },
+                y: {
+                  ticks: { color: commonText, font: { size: 11 } },
+                  grid: { display: false },
+                },
+              },
+            },
+          });
+        }
+
+        document.getElementById("dash-content").hidden = false;
+      }
+
+      async function loadData() {
+        const errBox = document.getElementById("err-box");
+        const btn = document.getElementById("btn-refresh");
+        errBox.hidden = true;
+        btn.disabled = true;
+        try {
+          const r = await fetch("/api/dados", { cache: "no-store", headers: { Accept: "application/json" } });
+          const data = await r.json();
+
+          if (!data.ok || !Array.isArray(data.rows)) {
+            errBox.textContent = data.error || "Não foi possível carregar os dados.";
+            errBox.hidden = false;
+            allRows = [];
+            document.getElementById("dash-content").hidden = true;
+            document.getElementById("dash-toolbar").hidden = true;
+            destroyAll();
+            return;
+          }
+
+          allRows = data.rows;
+          populateUnidadeSelect(allRows);
+          document.getElementById("dash-toolbar").hidden = false;
+          applyFilterAndRender();
+        } catch (e) {
+          errBox.textContent = "Erro de rede ao carregar a planilha.";
+          errBox.hidden = false;
+          allRows = [];
+          document.getElementById("dash-content").hidden = true;
+          document.getElementById("dash-toolbar").hidden = true;
+          destroyAll();
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      document.getElementById("btn-refresh").addEventListener("click", loadData);
+      document.getElementById("dash-unidade").addEventListener("change", applyFilterAndRender);
+      loadData();
+    })();
+  </script>
+</body>
+</html>

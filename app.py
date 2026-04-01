@@ -7,7 +7,8 @@ Fontes da planilha (por ordem):
 - PROG_EXCEL_URL — download público se não houver ficheiro local
 
 Colunas (planilha principal): A unidade, B boletim, C frota, D status, E data,
-H tipo/grupo equipamento, J chave (liga à aba base), K plano, L setor.
+F descrição (códigos do plano de manutenção), H tipo/grupo equipamento,
+J chave (liga à aba base), K plano, L setor.
 
 Aba **base**: coluna D = descrição do serviço, coluna E = chave (igual à J da principal).
 """
@@ -105,6 +106,7 @@ COL_B = 1   # B número do boletim
 COL_C = 2   # C frota
 COL_D = 3   # D status (P/A/E)
 COL_E = 4   # E data da ordem
+COL_F = 5   # F descrição (texto com códigos após "Manutenção:")
 COL_H = 7   # H grupo / tipo equipamento
 COL_J = 9   # J chave → aba base col. E
 COL_K = 10  # K plano
@@ -142,6 +144,34 @@ STATUS_LABEL = {
     "A": "Andamento",
     "E": "Encerrada",
 }
+
+
+def _extrair_codigos_plano_descricao(val) -> str:
+    """
+    Extrai trecho numérico após 'Manutenção:' em textos do tipo
+    '... Plano(s) de Manutenção: 110040000/110020000/100010000**(...)...'
+    """
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return ""
+    s = str(val).strip()
+    if not s:
+        return ""
+    if "_x" in s.lower():
+        s = _clean_excel_escapes(s)
+    m = re.search(
+        r"Manuten[çc][aã]o\s*:\s*([0-9]+(?:\s*/\s*[0-9]+)*)",
+        s,
+        re.IGNORECASE,
+    )
+    if not m:
+        m = re.search(
+            r"Manutencao\s*:\s*([0-9]+(?:\s*/\s*[0-9]+)*)",
+            s,
+            re.IGNORECASE,
+        )
+    if not m:
+        return ""
+    return re.sub(r"\s+", "", m.group(1))
 
 
 def _clean_excel_escapes(s: str) -> str:
@@ -210,6 +240,7 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
         r = df.iloc[i]
         tipo_plano = r.iloc[COL_K]
         data_str = _format_data_br(r.iloc[COL_E])
+        plano_codigos = _extrair_codigos_plano_descricao(r.iloc[COL_F])
 
         st = _normalize_status(r.iloc[COL_D])
         cod_unidade = _cell_str(r.iloc[COL_A])
@@ -222,6 +253,7 @@ def load_rows(path: Path) -> tuple[list[dict], str | None]:
                 "data_ordem": data_str,
                 "tipo_equipamento": _cell_str(r.iloc[COL_H]),
                 "tipo_plano": _cell_str(tipo_plano),
+                "plano_codigos": plano_codigos,
                 "setor": _cell_str(r.iloc[COL_L]),
                 "chave_os": _cell_str(r.iloc[COL_J]),
                 "status": st,
@@ -378,6 +410,11 @@ def index():
         revision=revision,
         servicos_por_chave=servicos_por_chave,
     )
+
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
 
 
 @app.route("/api/dados")
