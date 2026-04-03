@@ -26,7 +26,7 @@ No Vercel não existe o teu `prog.xlsx` local. Define no projeto Vercel **Settin
 | Variável | Descrição |
 |----------|-----------|
 | **`PROG_EXCEL_URL`** | Link **direto** ao ficheiro `.xlsx` (o browser tem de conseguir descarregar sem login). Ex.: **GitHub** (*Raw* do ficheiro), **Google Drive** (link de download direto), **OneDrive** (partilha com link de download). |
-| `PROG_EXCEL_REFRESH_SECS` | (Opcional) Segundos entre novos downloads. Predefinido: `90`. |
+| `PROG_EXCEL_REFRESH_SECS` | (Opcional) Segundos entre novos downloads da URL. Predefinido: `90`. **Exemplo para 1 hora:** `3600`. |
 
 Depois de guardar as variáveis, faz **Redeploy** do projeto.
 
@@ -38,4 +38,6 @@ Outras opções: commitar um `prog.xlsx` no repo (tirar `*.xlsx` do `.gitignore`
 |----------|-----|
 | `PROG_EXCEL_URL` | URL HTTP(S) pública do `.xlsx` (recomendado no Vercel). |
 | `PROG_EXCEL_PATH` | Caminho absoluto local (PC ou ficheiro copiado no deploy). |
-| `PROG_EXCEL_REFRESH_SECS` | Intervalo de atualização ao usar URL. |
+| `PROG_EXCEL_REFRESH_SECS` | Intervalo de atualização ao usar URL (ex.: `3600` = 1 hora). |
+| `DATA_POLL_MS` | (Opcional) Intervalo em ms do navegador a pedir `/api/dados` na lista principal. Predefinido: `10000` (10 s). Se a planilha for atualizada por URL só de hora em hora, pode subir para `300000` (5 min) para menos pedidos. |
+| `DASH_POLL_MS` | (Opcional) Intervalo em ms para o **dashboard** voltar a carregar dados. Predefinido: `3600000` (1 hora). Use `0` para desativar atualização automática (só o botão “Atualizar dados”). |

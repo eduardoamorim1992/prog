@@ -129,6 +129,11 @@
       gap: 0.35rem;
       min-width: min(100%, 320px);
     }
+    .dash-meta {
+      margin: -0.4rem 0 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
     .err {
       background: rgba(127, 29, 29, 0.35);
       border: 1px solid rgba(248, 113, 113, 0.35);
@@ -246,6 +251,7 @@
         <select id="dash-setor" class="dash-select" aria-label="Filtrar por setor"></select>
       </div>
     </div>
+    <p class="dash-meta" id="dash-last-update" hidden></p>
 
     <div id="err-box" class="err" hidden></div>
 
@@ -709,11 +715,26 @@
       async function loadData() {
         const errBox = document.getElementById("err-box");
         const btn = document.getElementById("btn-refresh");
+        const meta = document.getElementById("dash-last-update");
         errBox.hidden = true;
         btn.disabled = true;
         try {
           const r = await fetch("/api/dados", { cache: "no-store", headers: { Accept: "application/json" } });
           const data = await r.json();
+
+          const fmt = (ts) => new Date(ts * 1000).toLocaleString("pt-BR");
+          if (data.excel_source === "url") {
+            if (data.last_excel_fetch_ts) {
+              meta.textContent = "Última atualização da planilha: " + fmt(data.last_excel_fetch_ts);
+            } else {
+              meta.textContent = "Aguardando primeiro download da planilha online.";
+            }
+          } else if (data.server_time) {
+            meta.textContent = "Última leitura local: " + fmt(data.server_time);
+          } else {
+            meta.textContent = "";
+          }
+          meta.hidden = !meta.textContent;
 
           if (!data.ok || !Array.isArray(data.rows)) {
             errBox.textContent = data.error || "Não foi possível carregar os dados.";
@@ -721,6 +742,7 @@
             allRows = [];
             document.getElementById("dash-content").hidden = true;
             document.getElementById("dash-toolbar").hidden = true;
+            meta.hidden = true;
             destroyAll();
             return;
           }
@@ -746,6 +768,11 @@
       document.getElementById("dash-unidade").addEventListener("change", applyFilterAndRender);
       document.getElementById("dash-setor").addEventListener("change", applyFilterAndRender);
       loadData();
+
+      const DASH_POLL_MS = {{ dash_poll_ms }};
+      if (DASH_POLL_MS > 0) {
+        setInterval(loadData, DASH_POLL_MS);
+      }
     })();
   </script>
 </body>

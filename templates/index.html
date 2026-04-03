@@ -1996,8 +1996,8 @@
     refresh();
     setSyncState(true, "Monitorando alterações na planilha…");
 
-    const POLL_MS = 10000;
-    const POLL_HIDDEN_MS = 45000;
+    const POLL_MS = {{ data_poll_ms }};
+    const POLL_HIDDEN_MS = {{ data_poll_hidden_ms }};
     function pollDelay() {
       return document.hidden ? POLL_HIDDEN_MS : POLL_MS;
     }

@@ -6,6 +6,8 @@ Fontes da planilha (por ordem):
 - prog.xlsm / prog.xlsx na pasta do projeto (incl. deploy Vercel no bundle)
 - PROG_EXCEL_URL — download público se não houver ficheiro local
 
+Atualização online (URL): defina PROG_EXCEL_REFRESH_SECS (ex.: 3600 = nova tentativa de download a cada 1 hora).
+
 Colunas (planilha principal): A unidade, B boletim, C frota, D status, E data,
 F descrição (códigos do plano de manutenção), H tipo/grupo equipamento,
 J chave (liga à aba base), K plano, L setor.
@@ -30,6 +32,18 @@ BASE_DIR = Path(__file__).resolve().parent
 _override = (os.environ.get("PROG_EXCEL_PATH") or "").strip()
 _excel_url = (os.environ.get("PROG_EXCEL_URL") or "").strip()
 
+
+def _env_int(name: str, default: int, *, min_v: int | None = None, max_v: int | None = None) -> int:
+    try:
+        v = int(os.environ.get(name, str(default)))
+    except ValueError:
+        v = default
+    if min_v is not None:
+        v = max(min_v, v)
+    if max_v is not None:
+        v = min(max_v, v)
+    return v
+
 # Cache em /tmp no Vercel (serverless)
 _URL_TMP = Path("/tmp/prog_frota_planilha.xlsx")
 _url_last_fetch = 0.0
@@ -39,7 +53,7 @@ def _ensure_url_excel(url: str) -> tuple[Path | None, str | None]:
     """Garante ficheiro local em /tmp baixado da URL. Retorna (path, erro)."""
     global _url_last_fetch
 
-    refresh = max(15, int(os.environ.get("PROG_EXCEL_REFRESH_SECS", "90")))
+    refresh = _env_int("PROG_EXCEL_REFRESH_SECS", 90, min_v=15, max_v=86_400)
     now = time.time()
 
     if _URL_TMP.is_file() and (now - _url_last_fetch) < refresh:
@@ -409,26 +423,39 @@ def index():
         excel_name=excel_name,
         revision=revision,
         servicos_por_chave=servicos_por_chave,
+        data_poll_ms=_env_int("DATA_POLL_MS", 10_000, min_v=3_000, max_v=3_600_000),
+        data_poll_hidden_ms=_env_int("DATA_POLL_HIDDEN_MS", 45_000, min_v=5_000, max_v=3_600_000),
     )
 
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html")
+    return render_template(
+        "dashboard.html",
+        dash_poll_ms=_env_int("DASH_POLL_MS", 3_600_000, min_v=0, max_v=86_400_000),
+    )
 
 
 @app.route("/api/dados")
 def api_dados():
     rows, err, revision, servicos_por_chave = get_rows()
-    out = jsonify(
-        {
-            "ok": err is None,
-            "error": err,
-            "rows": rows if err is None else [],
-            "revision": revision,
-            "servicos_por_chave": servicos_por_chave if err is None else {},
-        }
-    )
+    payload = {
+        "ok": err is None,
+        "error": err,
+        "rows": rows if err is None else [],
+        "revision": revision,
+        "servicos_por_chave": servicos_por_chave if err is None else {},
+        "server_time": int(time.time()),
+    }
+    if _excel_url:
+        payload["excel_refresh_secs"] = _env_int(
+            "PROG_EXCEL_REFRESH_SECS", 90, min_v=15, max_v=86_400
+        )
+        payload["excel_source"] = "url"
+        payload["last_excel_fetch_ts"] = int(_url_last_fetch) if _url_last_fetch else None
+    else:
+        payload["excel_source"] = "local"
+    out = jsonify(payload)
     out.headers["Cache-Control"] = "no-store"
     return out
 
