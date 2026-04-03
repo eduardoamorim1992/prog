@@ -383,7 +383,7 @@
       border-collapse: separate;
       border-spacing: 0;
       font-size: 0.875rem;
-      table-layout: auto;
+      table-layout: fixed;
     }
     .data-table thead {
       position: sticky;
@@ -419,41 +419,27 @@
       overflow-wrap: break-word;
       word-break: normal;
     }
-    /* Larguras mínimas para não “esmagar” texto em ecrãs largos */
+    /* Larguras: colgroup + table-layout fixed; nowrap só onde precisa */
     @media (min-width: 640px) {
-      .data-table th:nth-child(1),
-      .data-table td:nth-child(1) {
-        min-width: 13.5rem;
-      }
-      .data-table th:nth-child(2),
-      .data-table td:nth-child(2) {
-        min-width: 9.5rem;
-      }
       .data-table th:nth-child(3),
       .data-table td:nth-child(3) {
-        min-width: 7rem;
         white-space: nowrap;
       }
       .data-table th:nth-child(4),
       .data-table td:nth-child(4) {
-        min-width: 7.5rem;
         white-space: nowrap;
       }
-      .data-table th:nth-child(5),
-      .data-table td:nth-child(5) {
-        min-width: 11rem;
-      }
+      /* Plano + Setor: menos espaço entre as duas colunas */
       .data-table th:nth-child(6),
       .data-table td:nth-child(6) {
-        min-width: 22rem;
+        padding-right: 0.45rem;
       }
       .data-table th:nth-child(7),
       .data-table td:nth-child(7) {
-        min-width: 9rem;
+        padding-left: 0.45rem;
       }
       .data-table th:nth-child(8),
       .data-table td:nth-child(8) {
-        min-width: 8.5rem;
         white-space: nowrap;
       }
     }
@@ -1097,6 +1083,16 @@
     <div class="table-card">
       <div class="table-scroll">
         <table class="data-table">
+          <colgroup>
+            <col style="width: 14%" />
+            <col style="width: 11%" />
+            <col style="width: 8%" />
+            <col style="width: 8%" />
+            <col style="width: 12%" />
+            <col style="width: 10%" />
+            <col style="width: 10%" />
+            <col style="width: 27%" />
+          </colgroup>
           <thead>
             <tr>
               <th>Unidade</th>

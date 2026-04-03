@@ -123,6 +123,12 @@
       outline: 2px solid rgba(56, 189, 248, 0.45);
       outline-offset: 2px;
     }
+    .dash-filter-group {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: min(100%, 320px);
+    }
     .err {
       background: rgba(127, 29, 29, 0.35);
       border: 1px solid rgba(248, 113, 113, 0.35);
@@ -231,8 +237,14 @@
     <h1>Dashboard de performance</h1>
 
     <div id="dash-toolbar" class="dash-toolbar" hidden>
-      <label for="dash-unidade">Unidade</label>
-      <select id="dash-unidade" class="dash-select" aria-label="Filtrar por unidade"></select>
+      <div class="dash-filter-group">
+        <label for="dash-unidade">Unidade</label>
+        <select id="dash-unidade" class="dash-select" aria-label="Filtrar por unidade"></select>
+      </div>
+      <div class="dash-filter-group">
+        <label for="dash-setor">Setor</label>
+        <select id="dash-setor" class="dash-select" aria-label="Filtrar por setor"></select>
+      </div>
     </div>
 
     <div id="err-box" class="err" hidden></div>
@@ -398,9 +410,39 @@
         }
       }
 
+      function populateSetorSelect(rows) {
+        const sel = document.getElementById("dash-setor");
+        const current = sel.value;
+        sel.innerHTML = "";
+        const optAll = document.createElement("option");
+        optAll.value = "";
+        optAll.textContent = "Todos os setores";
+        sel.appendChild(optAll);
+        const uniq = [
+          ...new Set(
+            rows.map((r) => (r.setor != null ? String(r.setor).trim() : "")).filter(Boolean),
+          ),
+        ];
+        uniq.sort((a, b) => a.localeCompare(b, "pt-BR"));
+        for (const s of uniq) {
+          const o = document.createElement("option");
+          o.value = s;
+          o.textContent = s;
+          sel.appendChild(o);
+        }
+        if (current && [...sel.options].some((op) => op.value === current)) {
+          sel.value = current;
+        }
+      }
+
       function applyFilterAndRender() {
         const u = (document.getElementById("dash-unidade").value || "").trim();
-        const filtered = u ? allRows.filter((r) => (r.unidade || "").trim() === u) : allRows;
+        const s = (document.getElementById("dash-setor").value || "").trim();
+        const filtered = allRows.filter((r) => {
+          const okU = !u || (r.unidade || "").trim() === u;
+          const okS = !s || (r.setor || "").trim() === s;
+          return okU && okS;
+        });
         render(filtered);
       }
 
@@ -685,6 +727,7 @@
 
           allRows = data.rows;
           populateUnidadeSelect(allRows);
+          populateSetorSelect(allRows);
           document.getElementById("dash-toolbar").hidden = false;
           applyFilterAndRender();
         } catch (e) {
@@ -701,6 +744,7 @@
 
       document.getElementById("btn-refresh").addEventListener("click", loadData);
       document.getElementById("dash-unidade").addEventListener("change", applyFilterAndRender);
+      document.getElementById("dash-setor").addEventListener("change", applyFilterAndRender);
       loadData();
     })();
   </script>
