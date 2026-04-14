@@ -252,6 +252,52 @@
       color: var(--muted);
       letter-spacing: 0.04em;
     }
+    .week-filter {
+      margin-top: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .week-filter .label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .week-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .week-btn {
+      border: 1px solid var(--border2);
+      background: rgba(148, 163, 184, 0.08);
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 0.38rem 0.72rem;
+      min-height: 34px;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.12s;
+      user-select: none;
+    }
+    .week-btn:hover {
+      border-color: rgba(148, 163, 184, 0.42);
+      background: rgba(148, 163, 184, 0.14);
+      color: var(--text);
+    }
+    .week-btn.active {
+      color: #eef6ff;
+      border-color: rgba(56, 189, 248, 0.72);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(129, 140, 248, 0.2));
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) inset;
+    }
+    .week-btn:active {
+      transform: translateY(1px);
+    }
     .input-wrap {
       position: relative;
     }
@@ -1042,6 +1088,19 @@
           <select id="f-status" aria-label="Status"></select>
         </div>
       </div>
+      <div class="week-filter" id="week-filter">
+        <span class="label">Dia da semana</span>
+        <div class="week-buttons" role="group" aria-label="Filtrar por dia da semana">
+          <button type="button" class="week-btn active" data-weekday="" aria-pressed="true">Todos</button>
+          <button type="button" class="week-btn" data-weekday="1" aria-pressed="false">Seg</button>
+          <button type="button" class="week-btn" data-weekday="2" aria-pressed="false">Ter</button>
+          <button type="button" class="week-btn" data-weekday="3" aria-pressed="false">Qua</button>
+          <button type="button" class="week-btn" data-weekday="4" aria-pressed="false">Qui</button>
+          <button type="button" class="week-btn" data-weekday="5" aria-pressed="false">Sex</button>
+          <button type="button" class="week-btn" data-weekday="6" aria-pressed="false">Sab</button>
+          <button type="button" class="week-btn" data-weekday="0" aria-pressed="false">Dom</button>
+        </div>
+      </div>
     </div>
 
     <div class="toolbar">
@@ -1172,6 +1231,7 @@
     let dataRevision = {{ revision | tojson }};
     let servicosPorChave = {{ servicos_por_chave | tojson }};
     let filtrarAtrasados = false;
+    let selectedWeekday = "";
 
     const STATUS_ORDER = ["P", "A", "E"];
 
@@ -1266,13 +1326,28 @@
       return t;
     }
 
+    function rowWeekday(r) {
+      const dt = parseDataOrdemParaDate(r?.data_ordem);
+      return dt ? String(dt.getDay()) : "";
+    }
+
+    function updateWeekdayButtons() {
+      document.querySelectorAll(".week-btn").forEach(btn => {
+        const v = btn.dataset.weekday || "";
+        const active = v === selectedWeekday;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    }
+
     /** Corresponde a linha usando filtros; `ignore` omite um filtro para montar opções disponíveis. */
-    function rowMatches(r, q, unidade, tipo, setor, plano, status, ignore) {
+    function rowMatches(r, q, unidade, tipo, setor, plano, status, weekday, ignore) {
       if (ignore !== "unidade" && unidade && r.unidade !== unidade) return false;
       if (ignore !== "tipo" && tipo && r.tipo_equipamento !== tipo) return false;
       if (ignore !== "setor" && setor && r.setor !== setor) return false;
       if (ignore !== "plano" && plano && r.tipo_plano !== plano) return false;
       if (ignore !== "status" && status && r.status !== status) return false;
+      if (weekday && rowWeekday(r) !== weekday) return false;
       if (q) {
         const hay = [r.unidade, r.unidade_codigo, r.numero_boletim, r.cod_frota, r.chave_os, r.tipo_equipamento, r.setor, r.tipo_plano, r.plano_codigos, r.status_label]
           .join(" ")
@@ -1290,13 +1365,14 @@
         setor: document.getElementById("f-setor").value,
         plano: document.getElementById("f-plano").value,
         status: document.getElementById("f-status").value,
+        weekday: selectedWeekday,
       };
     }
 
     function getFilteredRows() {
-      const { q, unidade, tipo, setor, plano, status } = getFilterState();
+      const { q, unidade, tipo, setor, plano, status, weekday } = getFilterState();
       const statusToMatch = filtrarAtrasados ? "" : status;
-      let out = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, statusToMatch, null));
+      let out = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, statusToMatch, weekday, null));
       if (filtrarAtrasados) out = out.filter(isProgramadaAtrasada);
       return out;
     }
@@ -1783,17 +1859,18 @@
       let setor = document.getElementById("f-setor").value;
       let plano = document.getElementById("f-plano").value;
       let status = document.getElementById("f-status").value;
+      const weekday = selectedWeekday;
 
       for (let round = 0; round < 8; round++) {
-        const rowsUnidade = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "unidade"));
+        const rowsUnidade = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, weekday, "unidade"));
         const optsUnidade = uniqSort(rowsUnidade.map(r => r.unidade));
-        const rowsTipo = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "tipo"));
+        const rowsTipo = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, weekday, "tipo"));
         const optsTipo = uniqSort(rowsTipo.map(r => r.tipo_equipamento));
-        const rowsSetor = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "setor"));
+        const rowsSetor = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, weekday, "setor"));
         const optsSetor = uniqSort(rowsSetor.map(r => r.setor));
-        const rowsPlano = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "plano"));
+        const rowsPlano = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, weekday, "plano"));
         const optsPlano = uniqSort(rowsPlano.map(r => r.tipo_plano));
-        const rowsStat = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, "status"));
+        const rowsStat = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, status, weekday, "status"));
         const rawStat = uniqSort(rowsStat.map(r => r.status).filter(Boolean));
         const optsStatus = [
           ...STATUS_ORDER.filter(s => rawStat.includes(s)),
@@ -1833,8 +1910,9 @@
       const setor = document.getElementById("f-setor").value;
       const plano = document.getElementById("f-plano").value;
       const status = document.getElementById("f-status").value;
+      const weekday = selectedWeekday;
       const statusToMatch = filtrarAtrasados ? "" : status;
-      let filtered = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, statusToMatch, null));
+      let filtered = rowsData.filter(r => rowMatches(r, q, unidade, tipo, setor, plano, statusToMatch, weekday, null));
       if (filtrarAtrasados) filtered = filtered.filter(isProgramadaAtrasada);
       filtered.sort((a, b) =>
         String(a.cod_frota ?? "").localeCompare(String(b.cod_frota ?? ""), "pt-BR", { numeric: true })
@@ -1890,6 +1968,8 @@
         btn.classList.remove("active");
         btn.setAttribute("aria-pressed", "false");
       }
+      selectedWeekday = "";
+      updateWeekdayButtons();
       refresh();
       document.getElementById("q").focus();
     }
@@ -1901,6 +1981,14 @@
       el.addEventListener("input", refresh);
       el.addEventListener("change", refresh);
     });
+    document.querySelectorAll(".week-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedWeekday = btn.dataset.weekday || "";
+        updateWeekdayButtons();
+        refresh();
+      });
+    });
+    updateWeekdayButtons();
 
     const btnOnlyAtrasados = document.getElementById("btn-only-atrasados");
     if (btnOnlyAtrasados) {
