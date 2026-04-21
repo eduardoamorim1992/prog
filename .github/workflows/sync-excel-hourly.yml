@@ -1,0 +1,43 @@
+name: Sync Excel Hourly
+
+on:
+  schedule:
+    - cron: "0 * * * *" # a cada 1 hora (UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-excel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download and update Excel
+        env:
+          EXCEL_URL: ${{ secrets.EXCEL_URL }}
+        run: |
+          if [ -z "$EXCEL_URL" ]; then
+            echo "Secret EXCEL_URL não configurado."
+            exit 1
+          fi
+          python scripts/sync_excel_from_url.py --url "$EXCEL_URL" --output "prog.xlsx"
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- prog.xlsx; then
+            echo "Sem alterações para commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prog.xlsx
+          git commit -m "chore: atualiza planilha automaticamente"
+          git push

@@ -41,3 +41,15 @@ Outras opções: commitar um `prog.xlsx` no repo (tirar `*.xlsx` do `.gitignore`
 | `PROG_EXCEL_REFRESH_SECS` | Intervalo de atualização ao usar URL (ex.: `3600` = 1 hora). |
 | `DATA_POLL_MS` | (Opcional) Intervalo em ms do navegador a pedir `/api/dados` na lista principal. Predefinido: `10000` (10 s). Se a planilha for atualizada por URL só de hora em hora, pode subir para `300000` (5 min) para menos pedidos. |
 | `DASH_POLL_MS` | (Opcional) Intervalo em ms para o **dashboard** voltar a carregar dados. Predefinido: `3600000` (1 hora). Use `0` para desativar atualização automática (só o botão “Atualizar dados”). |
+
+## Automação de commit do Excel (1h)
+
+Se quiser gravar no Git automaticamente o `prog.xlsx` atualizado por URL:
+
+1. Adicione no GitHub o secret do repositório: `EXCEL_URL` com link direto do `.xlsx`.
+2. O workflow `.github/workflows/sync-excel-hourly.yml` roda de hora em hora e manualmente.
+3. Ele baixa o ficheiro com `scripts/sync_excel_from_url.py` e só faz commit se o hash mudar.
+
+Observações:
+- O link do `EXCEL_URL` precisa permitir download sem autenticação interativa.
+- O horário do cron do GitHub Actions usa UTC.
