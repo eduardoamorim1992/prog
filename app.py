@@ -3,8 +3,8 @@ App web: lê a planilha Excel e exibe ordens de serviço.
 
 Fontes da planilha (por ordem):
 - PROG_EXCEL_PATH — caminho absoluto (prioridade se definido)
+- PROG_EXCEL_URL — download público (se definido)
 - prog.xlsm / prog.xlsx na pasta do projeto (incl. deploy Vercel no bundle)
-- PROG_EXCEL_URL — download público se não houver ficheiro local
 
 Atualização online (URL): defina PROG_EXCEL_REFRESH_SECS (ex.: 3600 = nova tentativa de download a cada 1 hora).
 
@@ -84,12 +84,12 @@ def resolve_excel_path() -> Path:
     """Caminho esperado (para mensagens); pode não existir se nada configurado."""
     if _override:
         return Path(_override).expanduser().resolve()
+    if _excel_url:
+        return _URL_TMP
     for name in ("prog.xlsm", "prog.xlsx"):
         p = (BASE_DIR / name).resolve()
         if p.is_file():
             return p
-    if _excel_url:
-        return _URL_TMP
     return (BASE_DIR / "prog.xlsx").resolve()
 
 
@@ -98,12 +98,12 @@ def _resolve_readable_excel() -> tuple[Path | None, str | None]:
     if _override:
         p = Path(_override).expanduser().resolve()
         return p, None
+    if _excel_url:
+        return _ensure_url_excel(_excel_url)
     for name in ("prog.xlsm", "prog.xlsx"):
         p = (BASE_DIR / name).resolve()
         if p.is_file():
             return p, None
-    if _excel_url:
-        return _ensure_url_excel(_excel_url)
     return (BASE_DIR / "prog.xlsx").resolve(), None
 
 
